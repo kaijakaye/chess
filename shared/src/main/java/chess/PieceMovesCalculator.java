@@ -600,6 +600,93 @@ public class PieceMovesCalculator {
 
     public Collection<ChessMove> getPawnPieceMoves(){
         var pawnMoves = new HashSet<ChessMove>();
+
+        //A LOT DEPENDS ON IF IT'S WHITE OR BLACK
+
+        //if white piece - moving upward
+        if(piece.getTeamColor()==ChessGame.TeamColor.WHITE){
+            //the four potential moves
+            ChessPosition[] trialsForward = new ChessPosition[2];
+            ChessPosition[] trialsDiag = new ChessPosition[2];
+            trialsForward[0] = new ChessPosition(position.getRow()+1,position.getColumn()); //up 1
+            trialsForward[1] = new ChessPosition(position.getRow()+2,position.getColumn());    //up 2
+            trialsDiag[0] = new ChessPosition(position.getRow()+1,position.getColumn()-1);    //diag left
+            trialsDiag[1] = new ChessPosition(position.getRow()+1,position.getColumn()+1);    //diag right
+
+            //check diagonals first
+            for(ChessPosition trial : trialsDiag){
+                //making sure it's in bounds
+                if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                    //make sure spot isn't empty
+                    if(board.getPiece(trial)!=null){
+                        ChessPiece occupant = board.getPiece(trial);
+                        //if the two pieces are on different teams
+                        if(occupant.getTeamColor()!=piece.getTeamColor()){
+                            pawnMoves.add(new ChessMove(position, trial, null));
+                        }
+                    }
+                }
+            }
+
+            //then check forwards
+            //making sure it's in bounds
+            if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
+                //make sure spot is empty
+                if (board.getPiece(trialsForward[0]) == null) {
+                    pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    //if it's in starting position
+                    if(position.getRow()==2){
+                        //and the second space is also empty
+                        if (board.getPiece(trialsForward[1]) == null) {
+                            pawnMoves.add(new ChessMove(position, trialsForward[1], null));
+                        }
+                    }
+                }
+            }
+
+        }
+        //if black piece - moving downward
+        else{
+            //the four potential moves
+            ChessPosition[] trialsForward = new ChessPosition[2];
+            ChessPosition[] trialsDiag = new ChessPosition[2];
+            trialsForward[0] = new ChessPosition(position.getRow()-1,position.getColumn()); //up 1
+            trialsForward[1] = new ChessPosition(position.getRow()-2,position.getColumn());    //up 2
+            trialsDiag[0] = new ChessPosition(position.getRow()-1,position.getColumn()-1);    //diag left
+            trialsDiag[1] = new ChessPosition(position.getRow()-1,position.getColumn()+1);    //diag right
+
+            //check diagonals first
+            for(ChessPosition trial : trialsDiag){
+                //making sure it's in bounds
+                if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                    //make sure spot isn't empty
+                    if(board.getPiece(trial)!=null){
+                        ChessPiece occupant = board.getPiece(trial);
+                        //if the two pieces are on different teams
+                        if(occupant.getTeamColor()!=piece.getTeamColor()){
+                            pawnMoves.add(new ChessMove(position, trial, null));
+                        }
+                    }
+                }
+            }
+
+            //then check forwards
+            //making sure it's in bounds
+            if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
+                //make sure spot is empty
+                if (board.getPiece(trialsForward[0]) == null) {
+                    pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    //if it's in starting position
+                    if(position.getRow()==7){
+                        //and the second space is also empty
+                        if (board.getPiece(trialsForward[1]) == null) {
+                            pawnMoves.add(new ChessMove(position, trialsForward[1], null));
+                        }
+                    }
+                }
+            }
+        }
+
         return pawnMoves;
     }
 
