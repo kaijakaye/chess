@@ -98,6 +98,44 @@ public class PieceMovesCalculator {
 
     public Collection<ChessMove> getKnightPieceMoves(){
         var knightMoves = new HashSet<ChessMove>();
+
+        //make a trial array of each potential position the king can move to
+        ChessPosition[] trials = new ChessPosition[8];
+
+        //above
+        trials[0] = new ChessPosition(position.getRow()+2,position.getColumn()+1);
+        //above right
+        trials[1] = new ChessPosition(position.getRow()+1,position.getColumn()+2);
+        //right
+        trials[2] = new ChessPosition(position.getRow()-1,position.getColumn()+2);
+        //below right
+        trials[3] = new ChessPosition(position.getRow() - 2,position.getColumn()+1);
+        //below
+        trials[4] = new ChessPosition(position.getRow() - 2,position.getColumn()-1);
+        //below left
+        trials[5] = new ChessPosition(position.getRow()-1,position.getColumn()-2);
+        //left
+        trials[6] = new ChessPosition(position.getRow()+1,position.getColumn()-2);
+        //above left
+        trials[7] = new ChessPosition(position.getRow()+2,position.getColumn()-1);
+
+        //make a for each loop to test each trial position
+        for(ChessPosition trial : trials){
+            //making sure it's in bounds
+            if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                //if the spot is empty
+                if(board.getPiece(trial)==null){
+                    knightMoves.add(new ChessMove(position, trial, null));
+                }
+                else{
+                    ChessPiece occupant = board.getPiece(trial);
+                    //if the two pieces are on different teams
+                    if(occupant.getTeamColor()!=piece.getTeamColor()){
+                        knightMoves.add(new ChessMove(position, trial, null));
+                    }
+                }
+            }
+        }
         return knightMoves;
     }
 
