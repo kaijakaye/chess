@@ -93,6 +93,120 @@ public class PieceMovesCalculator {
 
     public Collection<ChessMove> getBishopPieceMoves(){
         var bishopMoves = new HashSet<ChessMove>();
+
+        //make a while loop for each of the four directions
+        //up right loop
+        var changeByThisMuch = 1;
+        var shouldIBreak = false;
+        while(!shouldIBreak){
+
+            ChessPosition trial = new ChessPosition(position.getRow()+changeByThisMuch,position.getColumn() + changeByThisMuch);
+            //making sure it's in bounds
+            if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                //if the spot is empty
+                if(board.getPiece(trial)==null){
+                    bishopMoves.add(new ChessMove(position, trial, null));
+                    ++changeByThisMuch;
+                }
+                else{
+                    ChessPiece occupant = board.getPiece(trial);
+                    //if the two pieces are on different teams
+                    if(occupant.getTeamColor()!=piece.getTeamColor()){
+                        bishopMoves.add(new ChessMove(position, trial, null));
+                    }
+                    //regardless of what kind of piece it is, the loop ends here
+                    shouldIBreak = true;
+                }
+            }
+            else{
+                shouldIBreak = true;
+            }
+        }
+
+        //down right loop
+        changeByThisMuch = 1;
+        shouldIBreak = false;
+        while(!shouldIBreak){
+
+            ChessPosition trial = new ChessPosition(position.getRow()-changeByThisMuch,position.getColumn() + changeByThisMuch);
+            //making sure it's in bounds
+            if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                //if the spot is empty
+                if(board.getPiece(trial)==null){
+                    bishopMoves.add(new ChessMove(position, trial, null));
+                    ++changeByThisMuch;
+                }
+                else{
+                    ChessPiece occupant = board.getPiece(trial);
+                    //if the two pieces are on different teams
+                    if(occupant.getTeamColor()!=piece.getTeamColor()){
+                        bishopMoves.add(new ChessMove(position, trial, null));
+                    }
+                    //regardless of what kind of piece it is, the loop ends here
+                    shouldIBreak = true;
+                }
+            }
+            else{
+                shouldIBreak = true;
+            }
+        }
+
+        //down left loop
+        changeByThisMuch = 1;
+        shouldIBreak = false;
+        while(!shouldIBreak){
+
+            ChessPosition trial = new ChessPosition(position.getRow()-changeByThisMuch,position.getColumn() - changeByThisMuch);
+            //making sure it's in bounds
+            if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                //if the spot is empty
+                if(board.getPiece(trial)==null){
+                    bishopMoves.add(new ChessMove(position, trial, null));
+                    ++changeByThisMuch;
+                }
+                else{
+                    ChessPiece occupant = board.getPiece(trial);
+                    //if the two pieces are on different teams
+                    if(occupant.getTeamColor()!=piece.getTeamColor()){
+                        bishopMoves.add(new ChessMove(position, trial, null));
+                    }
+                    //regardless of what kind of piece it is, the loop ends here
+                    shouldIBreak = true;
+                }
+            }
+            else{
+                shouldIBreak = true;
+            }
+        }
+
+        //up left loop
+        changeByThisMuch = 1;
+        shouldIBreak = false;
+        while(!shouldIBreak){
+
+            ChessPosition trial = new ChessPosition(position.getRow()+changeByThisMuch,position.getColumn() - changeByThisMuch);
+            //making sure it's in bounds
+            if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
+                //if the spot is empty
+                if(board.getPiece(trial)==null){
+                    bishopMoves.add(new ChessMove(position, trial, null));
+                    ++changeByThisMuch;
+                }
+                else{
+                    ChessPiece occupant = board.getPiece(trial);
+                    //if the two pieces are on different teams
+                    if(occupant.getTeamColor()!=piece.getTeamColor()){
+                        bishopMoves.add(new ChessMove(position, trial, null));
+                    }
+                    //regardless of what kind of piece it is, the loop ends here
+                    shouldIBreak = true;
+                }
+            }
+            else{
+                shouldIBreak = true;
+            }
+        }
+
         return bishopMoves;
     }
 
