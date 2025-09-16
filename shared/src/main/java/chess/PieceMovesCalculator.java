@@ -622,7 +622,15 @@ public class PieceMovesCalculator {
                         ChessPiece occupant = board.getPiece(trial);
                         //if the two pieces are on different teams
                         if(occupant.getTeamColor()!=piece.getTeamColor()){
-                            pawnMoves.add(new ChessMove(position, trial, null));
+                            if(trialsForward[0].getRow()==8){
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.KNIGHT));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.QUEEN));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.ROOK));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.BISHOP));
+                            }
+                            else {
+                                pawnMoves.add(new ChessMove(position, trial, null));
+                            }
                         }
                     }
                 }
@@ -633,7 +641,15 @@ public class PieceMovesCalculator {
             if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
                 //make sure spot is empty
                 if (board.getPiece(trialsForward[0]) == null) {
-                    pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    if(trialsForward[0].getRow()==8){
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.KNIGHT));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.QUEEN));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.ROOK));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.BISHOP));
+                    }
+                    else {
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    }
                     //if it's in starting position
                     if(position.getRow()==2){
                         //and the second space is also empty
@@ -664,7 +680,15 @@ public class PieceMovesCalculator {
                         ChessPiece occupant = board.getPiece(trial);
                         //if the two pieces are on different teams
                         if(occupant.getTeamColor()!=piece.getTeamColor()){
-                            pawnMoves.add(new ChessMove(position, trial, null));
+                            if(trialsForward[0].getRow()==1){
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.KNIGHT));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.QUEEN));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.ROOK));
+                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.BISHOP));
+                            }
+                            else {
+                                pawnMoves.add(new ChessMove(position, trial, null));
+                            }
                         }
                     }
                 }
@@ -675,7 +699,17 @@ public class PieceMovesCalculator {
             if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
                 //make sure spot is empty
                 if (board.getPiece(trialsForward[0]) == null) {
-                    pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    //if it needs to get promoted
+                    if(trialsForward[0].getRow()==1){
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.KNIGHT));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.QUEEN));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.ROOK));
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.BISHOP));
+                    }
+                    else{
+                        pawnMoves.add(new ChessMove(position, trialsForward[0], null));
+                    }
+
                     //if it's in starting position
                     if(position.getRow()==7){
                         //and the second space is also empty
