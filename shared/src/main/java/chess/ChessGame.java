@@ -61,6 +61,16 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
 
+        //making sure there's a piece there
+        if(board.getPiece(move.getStartPosition())==null){
+            throw new InvalidMoveException("Invalid move");
+        }
+
+        //making sure it's the right team
+        if(board.getPiece(move.getStartPosition()).getTeamColor()!=whoseTurn){
+            throw new InvalidMoveException("Invalid move");
+        }
+
         Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
 
         var check = false;
@@ -79,6 +89,15 @@ public class ChessGame {
         //if the move never got implemented
         if(!check){
             throw new InvalidMoveException("Invalid move");
+        }
+        //if the move did happen, switch team color
+        else{
+            if(whoseTurn==TeamColor.WHITE){
+                whoseTurn = TeamColor.BLACK;
+            }
+            else{
+                whoseTurn = TeamColor.WHITE;
+            }
         }
 
     }
