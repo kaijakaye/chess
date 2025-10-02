@@ -13,10 +13,12 @@ import java.util.List;
 public class ChessGame {
 
     private TeamColor whoseTurn;
-    private ChessBoard board = new ChessBoard();
+    private ChessBoard board;
 
     public ChessGame() {
         whoseTurn = TeamColor.WHITE;
+        board = new ChessBoard();
+        board.resetBoard();
     }
 
     /**
