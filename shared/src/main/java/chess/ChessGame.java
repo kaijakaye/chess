@@ -237,30 +237,20 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        /*get king's position
-        var breakFromOuterLoop = false;
-        ChessPosition kingPos = null;
-        for(int rowCounter = 1; rowCounter < 9; rowCounter++){
-            if(breakFromOuterLoop){
-                break;
-            }
-            for(int colCounter = 1; colCounter < 9; colCounter++){
+        Collection<ChessMove> overallMoves = new ArrayList<>();
+        for(int rowCounter = 1; rowCounter < 9; rowCounter++) {
+            for (int colCounter = 1; colCounter < 9; colCounter++) {
                 ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
                 ChessPiece piece = board.getPiece(currentPos);
                 if(piece!=null) {
-                    if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
-                        kingPos = currentPos;
-                        breakFromOuterLoop = true;
-                        break;
+                    if(piece.getTeamColor()==teamColor){
+                        Collection<ChessMove> pmoves = validMoves(currentPos);
+                        overallMoves.addAll(pmoves);
                     }
                 }
             }
         }
-
-        Collection<ChessMove> kingMoves = board.getPiece(kingPos).pieceMoves(board,kingPos);
-
-        return (!isInCheck(teamColor)) && (!kingMoves.isEmpty());*/
-        return false;
+        return (!isInCheck(teamColor)) && overallMoves.isEmpty();
     }
 
     /**
