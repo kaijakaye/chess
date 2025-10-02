@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -50,26 +51,31 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece current = board.getPiece(startPosition);
+        if(current==null) return null;
         //valid moves BEFORE taking out ones that would put the king in check
         Collection<ChessMove> rawValids = current.pieceMoves(board,startPosition);
-        Collection<ChessMove> finalValids = current.pieceMoves(board,startPosition);
+        Collection<ChessMove> finalValids = new ArrayList<>(rawValids);
 
         //you'll put this one away
         ChessBoard originalCopy = board.clone();
 
         for(ChessMove move : rawValids){
+            //preserve pieces that could get captured to restore at the end
+            ChessPiece moving = board.getPiece(move.getStartPosition());
+            ChessPiece captured = board.getPiece(move.getEndPosition());
+
             //"move" the piece on the test board first
-            board.addPiece(move.getEndPosition(),board.getPiece(move.getStartPosition()));
+            board.addPiece(move.getEndPosition(),moving);
             //"clear" the old spot by adding a null piece
             board.addPiece(move.getStartPosition(),null);
 
-            if(isInCheck(whoseTurn)){
+            if(isInCheck(current.getTeamColor())){
                 finalValids.remove(move);
             }
 
             //get the board back to normal for the next loop
-            board.addPiece(move.getStartPosition(),board.getPiece(move.getEndPosition()));
-            board.addPiece(move.getEndPosition(),null);
+            board.addPiece(move.getStartPosition(),moving);
+            board.addPiece(move.getEndPosition(),captured);
         }
         //make sure board is unchanged
         setBoard(originalCopy);
@@ -162,8 +168,6 @@ public class ChessGame {
             }
         }
 
-        //if it's the white king
-
         for(int rowCounter = 1; rowCounter < 9; rowCounter++) {
             for (int colCounter = 1; colCounter < 9; colCounter++) {
                 ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
@@ -208,7 +212,27 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        /*get king's position
+        var breakFromOuterLoop = false;
+        ChessPosition kingPos = null;
+        for(int rowCounter = 1; rowCounter < 9; rowCounter++){
+            if(breakFromOuterLoop){
+                break;
+            }
+            for(int colCounter = 1; colCounter < 9; colCounter++){
+                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
+                ChessPiece piece = board.getPiece(currentPos);
+                if(piece!=null) {
+                    if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
+                        kingPos = currentPos;
+                        breakFromOuterLoop = true;
+                        break;
+                    }
+                }
+            }
+        }*/
+        return false;
+
     }
 
     /**
@@ -219,7 +243,30 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        /*get king's position
+        var breakFromOuterLoop = false;
+        ChessPosition kingPos = null;
+        for(int rowCounter = 1; rowCounter < 9; rowCounter++){
+            if(breakFromOuterLoop){
+                break;
+            }
+            for(int colCounter = 1; colCounter < 9; colCounter++){
+                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
+                ChessPiece piece = board.getPiece(currentPos);
+                if(piece!=null) {
+                    if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
+                        kingPos = currentPos;
+                        breakFromOuterLoop = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Collection<ChessMove> kingMoves = board.getPiece(kingPos).pieceMoves(board,kingPos);
+
+        return (!isInCheck(teamColor)) && (!kingMoves.isEmpty());*/
+        return false;
     }
 
     /**
