@@ -102,12 +102,20 @@ public class ChessGame {
         for(ChessMove trialMove : validMoves){
             //if it is a valid move
             if(trialMove.equals(move)){
-                //"move" the piece on the test board first
-                board.addPiece(move.getEndPosition(),board.getPiece(move.getStartPosition()));
-                //"clear" the old spot by adding a null piece
-                board.addPiece(move.getStartPosition(),null);
+                ChessPiece atSpot = board.getPiece(move.getStartPosition());
+                if(move.getPromotionPiece()!=null){
+                    board.addPiece(move.getEndPosition(),new ChessPiece(atSpot.getTeamColor(),move.getPromotionPiece()));
+                    board.addPiece(move.getStartPosition(),null);
+                    didTheMoveHappen = true;
+                }
+                else {
+                    //"move" the piece on the test board first
+                    board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
+                    //"clear" the old spot by adding a null piece
+                    board.addPiece(move.getStartPosition(), null);
 
-                didTheMoveHappen = true;
+                    didTheMoveHappen = true;
+                }
             }
         }
 
