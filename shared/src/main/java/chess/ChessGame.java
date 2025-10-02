@@ -50,7 +50,31 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece current = board.getPiece(startPosition);
-        return current.pieceMoves(board,startPosition);
+        //valid moves BEFORE taking out ones that would put the king in check
+        Collection<ChessMove> rawValids = current.pieceMoves(board,startPosition);
+        Collection<ChessMove> finalValids = current.pieceMoves(board,startPosition);
+
+        //you'll put this one away
+        ChessBoard originalCopy = board.clone();
+
+        for(ChessMove move : rawValids){
+            //"move" the piece on the test board first
+            board.addPiece(move.getEndPosition(),board.getPiece(move.getStartPosition()));
+            //"clear" the old spot by adding a null piece
+            board.addPiece(move.getStartPosition(),null);
+
+            if(isInCheck(whoseTurn)){
+                finalValids.remove(move);
+            }
+
+            //get the board back to normal for the next loop
+            board.addPiece(move.getStartPosition(),board.getPiece(move.getEndPosition()));
+            board.addPiece(move.getEndPosition(),null);
+        }
+        //make sure board is unchanged
+        setBoard(originalCopy);
+        return finalValids;
+
     }
 
     /**
@@ -73,21 +97,22 @@ public class ChessGame {
 
         Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
 
-        var check = false;
+        var didTheMoveHappen = false;
         //checking to make sure that the given move is within the list of valid moves for that piece
         for(ChessMove trialMove : validMoves){
             //if it is a valid move
             if(trialMove.equals(move)){
-                //"move" the piece
+                //"move" the piece on the test board first
                 board.addPiece(move.getEndPosition(),board.getPiece(move.getStartPosition()));
                 //"clear" the old spot by adding a null piece
                 board.addPiece(move.getStartPosition(),null);
-                check = true;
+
+                didTheMoveHappen = true;
             }
         }
 
         //if the move never got implemented
-        if(!check){
+        if(!didTheMoveHappen){
             throw new InvalidMoveException("Invalid move");
         }
         //if the move did happen, switch team color
@@ -109,7 +134,63 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        //get king's position
+        var breakFromOuterLoop = false;
+        ChessPosition kingPos = null;
+        for(int rowCounter = 1; rowCounter < 9; rowCounter++){
+            if(breakFromOuterLoop){
+                break;
+            }
+            for(int colCounter = 1; colCounter < 9; colCounter++){
+                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
+                ChessPiece piece = board.getPiece(currentPos);
+                if(piece!=null) {
+                    if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
+                        kingPos = currentPos;
+                        breakFromOuterLoop = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        //if it's the white king
+
+        for(int rowCounter = 1; rowCounter < 9; rowCounter++) {
+            for (int colCounter = 1; colCounter < 9; colCounter++) {
+                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
+                ChessPiece piece = board.getPiece(currentPos);
+                if(piece!=null) {
+
+                    //if we're dealing with the white King
+                    if (teamColor == TeamColor.WHITE) {
+                        //if the piece we're looking at is black
+                        if (piece.getTeamColor() == TeamColor.BLACK) {
+                            Collection<ChessMove> valids = piece.pieceMoves(board,currentPos);
+                            for (ChessMove trial : valids) {
+                                if (trial.getEndPosition().equals(kingPos)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    //if king is black
+                    else {
+                        //if the piece we're looking at is white
+                        if (piece.getTeamColor() == TeamColor.WHITE) {
+                            Collection<ChessMove> valids = piece.pieceMoves(board,currentPos);
+                            for (ChessMove trial : valids) {
+                                if (trial.getEndPosition().equals(kingPos)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+
     }
 
     /**

@@ -9,12 +9,12 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard implements Cloneable{
 
     private ChessPiece[][] board = new ChessPiece[8][8];
 
     public ChessBoard() {
-        
+
     }
 
     public ChessPiece[][] getBoard() {
@@ -99,5 +99,15 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(board);
+    }
+
+    @Override
+    public ChessBoard clone(){
+        var newBoard = new ChessBoard();
+        for(int i = 0; i<8; i++){
+            newBoard.board[i] = Arrays.copyOf(board[i], board[i].length);
+        }
+
+        return newBoard;
     }
 }
