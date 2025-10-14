@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.MemoryDataAccess;
 import datamodel.UserData;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -14,6 +15,7 @@ public class Server {
     private final UserService userService;
 
     public Server() {
+        var dataAccess = new MemoryDataAccess();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
@@ -21,22 +23,29 @@ public class Server {
         server.delete("db",ctx -> ctx.result("{}"));
         //register
         server.post("user",ctx -> register(ctx));
-        userService = new UserService();
+        userService = new UserService(dataAccess);
 
 
 
     }
 
     private void register(Context ctx){
-        var serializer = new Gson();
-        String reqJson = ctx.body();
-        var user = serializer.fromJson(reqJson, UserData.class);
+        try {
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var user = serializer.fromJson(reqJson, UserData.class);
 
-        var authData = userService.register(user);
+            var authData = userService.register(user);
 
-        //call to the service and register
-        //current authToken creation is temporary
-        ctx.result(serializer.toJson(authData));
+            //call to the service and register
+            //current authToken creation is temporary
+            ctx.result(serializer.toJson(authData));
+        }
+        catch(Exception ex){
+            //fix later?
+            var msg = String.format("{ \"message\": \"Error: already taken\" }", ex.getMessage());
+            ctx.status(403).result(msg);
+        }
 
     }
 
