@@ -12,18 +12,18 @@ public class MemoryDataAccess implements DataAccess{
 
 
     @Override
-    public void clear() {
+    public void clear(){
         users.clear();
         games.clear();
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user){
         users.put(user.username(),user);
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username){
         return users.get(username);
     }
 }
