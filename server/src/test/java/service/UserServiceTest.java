@@ -11,7 +11,7 @@ class UserServiceTest {
 
     @Test
     //positive register test
-    void registerPos() throws Exception {
+    void registerSuccessful() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("joe", "j@j.com", "toomanysecrets");
         var userService = new UserService(db);
@@ -31,7 +31,28 @@ class UserServiceTest {
         var user2 = new UserData("joe", "joe@j.com", "blahblahblah");
         Exception exception = assertThrows(Exception.class, () -> {userService.register(user2);});
         assertEquals("Error: already taken", exception.getMessage());
+    }
 
+    @Test//positive login test
+    void loginSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var authData2 = userService.login(user);
+        assertNotNull(authData2);
+        assertEquals(user.username(), authData2.username());
+        assertFalse(authData2.authToken().isEmpty());
+    }
+
+    @Test
+        //negative login test
+    void loginInvalidUsername() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        Exception exception = assertThrows(Exception.class, () -> {userService.login(user);});
+        assertEquals("Error: unauthorized", exception.getMessage());
     }
 
 }

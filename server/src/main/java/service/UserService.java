@@ -17,11 +17,11 @@ public class UserService {
 
     public AuthData register(UserData user) throws Exception{
         if(user.username()==null || user.password()==null || user.email()==null){
-            throw new Exception("Error: bad request");
+            throw new BadRequestException();
         }
 
         if(dataAccess.getUser(user.username())!=null){
-            throw new Exception("Error: already taken");
+            throw new AlreadyTakenException();
         }
 
         dataAccess.createUser(user);
