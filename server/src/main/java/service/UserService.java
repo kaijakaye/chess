@@ -1,9 +1,10 @@
 package service;
 
 import dataaccess.DataAccess;
-import datamodel.*;
 
-import javax.xml.crypto.Data;
+import java.util.UUID;
+
+import model.*;
 
 public class UserService {
 
@@ -24,8 +25,8 @@ public class UserService {
         return authData;
     }
 
-    //go into the specs later to fix this
-    private String generateAuthToken(){
-        return "xyz";
+
+    public static String generateAuthToken() {
+        return UUID.randomUUID().toString();
     }
 }
