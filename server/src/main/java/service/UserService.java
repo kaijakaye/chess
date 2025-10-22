@@ -1,18 +1,16 @@
 package service;
-
 import dataaccess.DataAccess;
-
-import java.util.Objects;
 import java.util.UUID;
-
 import model.*;
 
 public class UserService {
 
     private final DataAccess dataAccess;
+    private int gameIDCounter;
 
     public UserService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
+        gameIDCounter = 1;
     }
 
     public void clear(){
@@ -70,6 +68,20 @@ public class UserService {
         dataAccess.deleteAuth(authToken);
     }
 
+    public GameData create(String authToken, GameData game) throws Exception{
+        if(game.getGameName()==null){
+            throw new BadRequestException();
+        }
+        var authData = dataAccess.getAuth(authToken);
+        if(authData==null){
+            throw new UnauthorizedException();
+        }
+
+        game.setGameID(gameIDCounter);
+        ++gameIDCounter;
+        dataAccess.createGame(game);
+        return game;
+    }
 
     public static String generateAuthToken() {
         return UUID.randomUUID().toString();

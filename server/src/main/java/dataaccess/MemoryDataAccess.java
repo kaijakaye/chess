@@ -44,4 +44,9 @@ public class MemoryDataAccess implements DataAccess{
         auths.remove(authToken);
     }
 
+    @Override
+    public void createGame(GameData game){
+        games.put(game.getGameID(),game);
+    }
+
 }
