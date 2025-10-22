@@ -26,6 +26,7 @@ public class UserService {
 
         dataAccess.createUser(user);
         var authData = new AuthData(user.username(), generateAuthToken());
+        dataAccess.createAuth(authData);
         return authData;
     }
 
@@ -47,7 +48,23 @@ public class UserService {
 
         UserData uData = dataAccess.getUser(user.username());
         var authData = new AuthData(user.username(), generateAuthToken());
+        dataAccess.createAuth(authData);
         return authData;
+    }
+
+    public void logout(String authToken) throws Exception{
+        AuthData auth = dataAccess.getAuth(authToken);
+
+        //if the authData is null
+        if(auth==null){
+            throw new UnauthorizedException();
+        }
+
+        //if the username hasn't been registered already
+        if(auth.username()==null){
+            throw new UnauthorizedException();
+        }
+        dataAccess.deleteAuth(authToken);
     }
 
 

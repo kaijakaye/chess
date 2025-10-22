@@ -21,10 +21,12 @@ public class Server {
         server.delete("db",ctx -> ctx.result("{}"));
         //register
         server.post("user",ctx -> register(ctx));
-        userService = new UserService(dataAccess);
         //login
         server.post("session",ctx -> login(ctx));
-        //userService = new UserService(dataAccess);    do I need this?
+        //logout
+        server.delete("session",ctx -> logout(ctx));
+        userService = new UserService(dataAccess);
+
 
 
 
@@ -39,7 +41,6 @@ public class Server {
             var authData = userService.register(user);
 
             //call to the service and register
-            //current authToken creation is temporary
             ctx.result(serializer.toJson(authData));
         }
         catch(Exception ex){
@@ -69,13 +70,25 @@ public class Server {
 
     }
 
+    private void logout(Context ctx){
+        try {
+            String authToken = ctx.header("authorization");
+            userService.logout(authToken);
+            ctx.result();
+        }
+        catch(Exception ex){
+            var msg = String.format("{ \"message\": \"%s\" }", ex.getMessage());
+            ctx.status(getStatusCode(ex)).result(msg);
+        }
+
+    }
+
     private int getStatusCode(Exception ex){
         return switch(ex){
             case BadRequestException ignore -> 400;
             case UnauthorizedException ignore -> 401;
             case AlreadyTakenException ignore -> 403;
             default -> 500;
-
         };
     }
 
