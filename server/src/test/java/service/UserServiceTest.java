@@ -55,4 +55,26 @@ class UserServiceTest {
         assertEquals("Error: unauthorized", exception.getMessage());
     }
 
+    @Test//positive logout test
+    void logoutSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var authData2 = userService.login(user);
+        userService.logout(authData2.authToken());
+        //can't logout twice
+        Exception exception = assertThrows(Exception.class, () -> {userService.logout(authData2.authToken());});
+        assertEquals("Error: unauthorized", exception.getMessage());
+    }
+
+    @Test
+        //negative logout test
+    void logoutInvalidToken() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        Exception exception = assertThrows(Exception.class, () -> {userService.logout("invalid-token-xxx");});
+        assertEquals("Error: unauthorized", exception.getMessage());
+    }
+
 }

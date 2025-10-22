@@ -18,7 +18,7 @@ public class Server {
 
         // Register your endpoints and exception handlers here.
         //clear
-        server.delete("db",ctx -> ctx.result("{}"));
+        server.delete("db",ctx -> clear(ctx));
         //register
         server.post("user",ctx -> register(ctx));
         //login
@@ -30,6 +30,11 @@ public class Server {
 
 
 
+    }
+
+    private void clear(Context ctx){
+        userService.clear();
+        ctx.result();
     }
 
     private void register(Context ctx){

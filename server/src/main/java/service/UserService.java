@@ -15,6 +15,10 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
+    public void clear(){
+        dataAccess.clear();
+    }
+
     public AuthData register(UserData user) throws Exception{
         if(user.username()==null || user.password()==null || user.email()==null){
             throw new BadRequestException();
@@ -46,7 +50,6 @@ public class UserService {
             throw new UnauthorizedException();
         }
 
-        UserData uData = dataAccess.getUser(user.username());
         var authData = new AuthData(user.username(), generateAuthToken());
         dataAccess.createAuth(authData);
         return authData;
