@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -154,62 +153,46 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        //get king's position
-        var breakFromOuterLoop = false;
-        ChessPosition kingPos = null;
-        for(int rowCounter = 1; rowCounter < 9; rowCounter++){
-            if(breakFromOuterLoop){
-                break;
-            }
-            for(int colCounter = 1; colCounter < 9; colCounter++){
-                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
+        ChessPosition kingPos = findKingPosition(teamColor);
+        if (kingPos == null) return false;
+
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition currentPos = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(currentPos);
-                if(piece!=null) {
-                    if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
-                        kingPos = currentPos;
-                        breakFromOuterLoop = true;
-                        break;
-                    }
+
+                if (piece == null){
+                    continue;
                 }
-            }
-        }
+                if (piece.getTeamColor() == teamColor){
+                    continue; // skip friendly pieces
+                }
 
-        for(int rowCounter = 1; rowCounter < 9; rowCounter++) {
-            for (int colCounter = 1; colCounter < 9; colCounter++) {
-                ChessPosition currentPos = new ChessPosition(rowCounter,colCounter);
-                ChessPiece piece = board.getPiece(currentPos);
-                if(piece!=null) {
-
-                    //if we're dealing with the white King
-                    if (teamColor == TeamColor.WHITE) {
-                        //if the piece we're looking at is black
-                        if (piece.getTeamColor() == TeamColor.BLACK) {
-                            Collection<ChessMove> valids = piece.pieceMoves(board,currentPos);
-                            for (ChessMove trial : valids) {
-                                if (trial.getEndPosition().equals(kingPos)) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    //if king is black
-                    else {
-                        //if the piece we're looking at is white
-                        if (piece.getTeamColor() == TeamColor.WHITE) {
-                            Collection<ChessMove> valids = piece.pieceMoves(board,currentPos);
-                            for (ChessMove trial : valids) {
-                                if (trial.getEndPosition().equals(kingPos)) {
-                                    return true;
-                                }
-                            }
-                        }
+                for (ChessMove move : piece.pieceMoves(board, currentPos)) {
+                    if (move.getEndPosition().equals(kingPos)) {
+                        return true;
                     }
                 }
             }
         }
         return false;
-
     }
+
+    private ChessPosition findKingPosition(TeamColor teamColor) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(pos);
+                if (piece != null &&
+                        piece.getPieceType() == ChessPiece.PieceType.KING &&
+                        piece.getTeamColor() == teamColor) {
+                    return pos;
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Determines if the given team is in checkmate

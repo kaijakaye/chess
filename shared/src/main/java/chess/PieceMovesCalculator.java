@@ -219,10 +219,16 @@ public class PieceMovesCalculator {
 
         // --- Diagonal captures ---
         for (ChessPosition trial : trialsDiag) {
-            if (!isInBounds(trial)) continue;
+            if (!isInBounds(trial)){
+                continue;
+            }
             ChessPiece occupant = board.getPiece(trial);
-            if (occupant == null) continue;
-            if (occupant.getTeamColor() == piece.getTeamColor()) continue;
+            if (occupant == null){
+                continue;
+            }
+            if (occupant.getTeamColor() == piece.getTeamColor()){
+                continue;
+            }
 
             if (trial.getRow() == promoteRow) {
                 addPromotions(pawnMoves, position, trial);
