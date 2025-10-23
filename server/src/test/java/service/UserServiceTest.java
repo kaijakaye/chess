@@ -77,4 +77,41 @@ class UserServiceTest {
         assertEquals("Error: unauthorized", exception.getMessage());
     }
 
+    @Test//positive clear test
+    void clearSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var authData2 = userService.login(user);
+        var game = new GameData(2,"myGame");
+        db.clear();
+        assertNull(db.getUser("joe"));
+        assertNull(db.getGame(2));
+    }
+
+    @Test//positive createGame test
+    void createGameSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        assertEquals(db.getGame(game.getGameID()),game);
+    }
+
+    @Test//negative createGame test
+    void createGameInvalidName() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2, null);
+        Exception exception = assertThrows(Exception.class, () -> {userService.create(authData.authToken(),game);});
+        assertEquals("Error: bad request", exception.getMessage());
+    }
+
+
+
 }
