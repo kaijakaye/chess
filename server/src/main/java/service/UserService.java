@@ -1,6 +1,8 @@
 package service;
 import chess.ChessGame;
 import dataaccess.DataAccess;
+
+import java.util.Collection;
 import java.util.UUID;
 import model.*;
 
@@ -115,6 +117,15 @@ public class UserService {
         }
 
         dataAccess.updateGame(gameData);
+    }
+
+    public ListGamesResult list(String authToken) throws Exception{
+        var authData = dataAccess.getAuth(authToken);
+        if(authData==null){
+            throw new UnauthorizedException();
+        }
+        ListGamesResult result = dataAccess.listGames();
+        return result;
     }
 
     public static String generateAuthToken() {

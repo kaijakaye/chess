@@ -29,6 +29,8 @@ public class Server {
         server.post("game",ctx -> create(ctx));
         //join game
         server.put("game",ctx -> join(ctx));
+        //list games
+        server.get("game",ctx -> list(ctx));
         userService = new UserService(dataAccess);
 
     }
@@ -125,6 +127,19 @@ public class Server {
             ctx.status(getStatusCode(ex)).result(msg);
 
         }
+    }
+
+    private void list(Context ctx){
+        try {
+            String authToken = ctx.header("authorization");
+            ListGamesResult result = userService.list(authToken);
+            ctx.result(new Gson().toJson(result));
+        }
+        catch(Exception ex){
+            var msg = String.format("{ \"message\": \"%s\" }", ex.getMessage());
+            ctx.status(getStatusCode(ex)).result(msg);
+        }
+
     }
 
     private int getStatusCode(Exception ex){
