@@ -141,4 +141,28 @@ class UserServiceTest {
         assertEquals("Error: bad request", exception2.getMessage());
     }
 
+    @Test//positive listGames test
+    void listGamesSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        var result = userService.list(authData.authToken());
+        assertNotNull(result);
+    }
+
+    @Test//negative listGames test
+    void listGamesInvalidAuth() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        Exception exception = assertThrows(Exception.class, () -> {userService.list(null);});
+        assertEquals("Error: unauthorized", exception.getMessage());
+    }
+
 }
