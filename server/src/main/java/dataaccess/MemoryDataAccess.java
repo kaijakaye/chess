@@ -49,4 +49,14 @@ public class MemoryDataAccess implements DataAccess{
         games.put(game.getGameID(),game);
     }
 
+    @Override
+    public GameData getGame(int gameID){
+        return games.get(gameID);
+    }
+
+    @Override
+    public void updateGame(GameData game){
+        games.put(game.getGameID(), game);
+    }
+
 }

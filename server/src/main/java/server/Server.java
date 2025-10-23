@@ -27,6 +27,8 @@ public class Server {
         server.delete("session",ctx -> logout(ctx));
         //create game
         server.post("game",ctx -> create(ctx));
+        //join game
+        server.put("game",ctx -> join(ctx));
         userService = new UserService(dataAccess);
 
     }
@@ -98,6 +100,25 @@ public class Server {
 
             //call to the service and login
             ctx.result(serializer.toJson(gameData));
+        }
+        catch(Exception ex){
+            var msg = String.format("{ \"message\": \"%s\" }", ex.getMessage());
+            ctx.status(getStatusCode(ex)).result(msg);
+
+        }
+    }
+
+    private void join(Context ctx){
+        try {
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var gameRequest = serializer.fromJson(reqJson, JoinGameRequest.class);
+
+            String authToken = ctx.header("authorization");
+            userService.join(authToken, gameRequest);
+
+            //call to the service and login
+            ctx.result();
         }
         catch(Exception ex){
             var msg = String.format("{ \"message\": \"%s\" }", ex.getMessage());

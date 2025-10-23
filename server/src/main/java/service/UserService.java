@@ -1,4 +1,5 @@
 package service;
+import chess.ChessGame;
 import dataaccess.DataAccess;
 import java.util.UUID;
 import model.*;
@@ -81,6 +82,39 @@ public class UserService {
         ++gameIDCounter;
         dataAccess.createGame(game);
         return game;
+    }
+
+    public void join(String authToken, JoinGameRequest gameRequest) throws Exception{
+        var authData = dataAccess.getAuth(authToken);
+
+        if(authData==null){
+            throw new UnauthorizedException();
+        }
+
+        var gameData = dataAccess.getGame(gameRequest.gameID());
+
+        if(gameData==null){
+            throw new BadRequestException();
+        }
+
+        if(gameRequest.playerColor()== ChessGame.TeamColor.WHITE){
+            if(gameData.getWhiteUsername()!=null){
+                throw new AlreadyTakenException();
+            }
+            gameData.setWhiteUsername(authData.username());
+        }
+        else if(gameRequest.playerColor()== ChessGame.TeamColor.BLACK){
+            if(gameData.getBlackUsername()!=null){
+                throw new AlreadyTakenException();
+            }
+            gameData.setBlackUsername(authData.username());
+        }
+        //if the team color is null
+        else{
+            throw new BadRequestException();
+        }
+
+        dataAccess.updateGame(gameData);
     }
 
     public static String generateAuthToken() {
