@@ -55,7 +55,9 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece current = board.getPiece(startPosition);
-        if(current==null) return null;
+        if(current==null){
+            return null;
+        }
         //valid moves BEFORE taking out ones that would put the king in check
         Collection<ChessMove> rawValids = current.pieceMoves(board,startPosition);
         Collection<ChessMove> finalValids = new ArrayList<>(rawValids);

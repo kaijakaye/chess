@@ -135,9 +135,11 @@ class UserServiceTest {
         var authData = userService.register(user);
         var game = new GameData(2,"myGame");
         userService.create(authData.authToken(),game);
-        Exception exception = assertThrows(Exception.class, () -> {userService.join(null, new JoinGameRequest(ChessGame.TeamColor.WHITE, game.getGameID()));});
+        JoinGameRequest req = new JoinGameRequest(ChessGame.TeamColor.WHITE, game.getGameID());
+        JoinGameRequest req2 = new JoinGameRequest(ChessGame.TeamColor.WHITE, 0);
+        Exception exception = assertThrows(Exception.class, () -> {userService.join(null, req);});
         assertEquals("Error: unauthorized", exception.getMessage());
-        Exception exception2 = assertThrows(Exception.class, () -> {userService.join(authData.authToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 0));});
+        Exception exception2 = assertThrows(Exception.class, () -> {userService.join(authData.authToken(), req2);});
         assertEquals("Error: bad request", exception2.getMessage());
     }
 
