@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import model.*;
@@ -112,6 +113,32 @@ class UserServiceTest {
         assertEquals("Error: bad request", exception.getMessage());
     }
 
+    @Test//positive joinGame test
+    void joinGameSuccessful() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        userService.join(authData.authToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, game.getGameID()));
+        var joinedGame = db.getGame(game.getGameID());
+        assertNotNull(joinedGame);
+        assertEquals("joe", joinedGame.getWhiteUsername());
+    }
 
+    @Test//negative joinGame test
+    void joinGameInvalidAuthAndID() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        Exception exception = assertThrows(Exception.class, () -> {userService.join(null, new JoinGameRequest(ChessGame.TeamColor.WHITE, game.getGameID()));});
+        assertEquals("Error: unauthorized", exception.getMessage());
+        Exception exception2 = assertThrows(Exception.class, () -> {userService.join(authData.authToken(), new JoinGameRequest(ChessGame.TeamColor.WHITE, 0));});
+        assertEquals("Error: bad request", exception2.getMessage());
+    }
 
 }
