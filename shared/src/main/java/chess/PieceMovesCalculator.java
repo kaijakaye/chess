@@ -120,7 +120,9 @@ public class PieceMovesCalculator {
             int newCol = position.getColumn() + changeByThisMuch * colDelta;
 
             // Stop if out of bounds
-            if (newRow < 1 || newRow > 8 || newCol < 1 || newCol > 8) break;
+            if (newRow < 1 || newRow > 8 || newCol < 1 || newCol > 8){
+                break;
+            }
 
             ChessPosition trial = new ChessPosition(newRow, newCol);
             ChessPiece occupant = board.getPiece(trial);
@@ -198,124 +200,50 @@ public class PieceMovesCalculator {
         return rookMoves;
     }
 
-    public Collection<ChessMove> getPawnPieceMoves(){
+    public Collection<ChessMove> getPawnPieceMoves() {
         var pawnMoves = new HashSet<ChessMove>();
+        boolean isWhite = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+        int direction = isWhite ? 1 : -1; // +1 for white, -1 for black
+        int startRow = isWhite ? 2 : 7;
+        int promoteRow = isWhite ? 8 : 1;
 
-        //A LOT DEPENDS ON IF IT'S WHITE OR BLACK
+        ChessPosition[] trialsForward = {
+                new ChessPosition(position.getRow() + direction, position.getColumn()),
+                new ChessPosition(position.getRow() + 2 * direction, position.getColumn())
+        };
 
-        //if white piece - moving upward
-        if(piece.getTeamColor()==ChessGame.TeamColor.WHITE){
-            //the four potential moves
-            ChessPosition[] trialsForward = new ChessPosition[2];
-            ChessPosition[] trialsDiag = new ChessPosition[2];
-            trialsForward[0] = new ChessPosition(position.getRow()+1,position.getColumn()); //up 1
-            trialsForward[1] = new ChessPosition(position.getRow()+2,position.getColumn());    //up 2
-            trialsDiag[0] = new ChessPosition(position.getRow()+1,position.getColumn()-1);    //diag left
-            trialsDiag[1] = new ChessPosition(position.getRow()+1,position.getColumn()+1);    //diag right
+        ChessPosition[] trialsDiag = {
+                new ChessPosition(position.getRow() + direction, position.getColumn() - 1),
+                new ChessPosition(position.getRow() + direction, position.getColumn() + 1)
+        };
 
-            //check diagonals first
-            for(ChessPosition trial : trialsDiag){
-                //making sure it's in bounds
-                if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
-                    //make sure spot isn't empty
-                    if(board.getPiece(trial)!=null){
-                        ChessPiece occupant = board.getPiece(trial);
-                        //if the two pieces are on different teams
-                        if(occupant.getTeamColor()!=piece.getTeamColor()){
-                            if(trialsForward[0].getRow()==8){
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.KNIGHT));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.QUEEN));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.ROOK));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.BISHOP));
-                            }
-                            else {
-                                pawnMoves.add(new ChessMove(position, trial, null));
-                            }
-                        }
-                    }
-                }
+        // --- Diagonal captures ---
+        for (ChessPosition trial : trialsDiag) {
+            if (!isInBounds(trial)) continue;
+            ChessPiece occupant = board.getPiece(trial);
+            if (occupant == null) continue;
+            if (occupant.getTeamColor() == piece.getTeamColor()) continue;
+
+            if (trial.getRow() == promoteRow) {
+                addPromotions(pawnMoves, position, trial);
+            } else {
+                pawnMoves.add(new ChessMove(position, trial, null));
             }
-
-            //then check forwards
-            //making sure it's in bounds
-            if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
-                //make sure spot is empty
-                if (board.getPiece(trialsForward[0]) == null) {
-                    if(trialsForward[0].getRow()==8){
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.KNIGHT));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.QUEEN));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.ROOK));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.BISHOP));
-                    }
-                    else {
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], null));
-                    }
-                    //if it's in starting position
-                    if(position.getRow()==2){
-                        //and the second space is also empty
-                        if (board.getPiece(trialsForward[1]) == null) {
-                            pawnMoves.add(new ChessMove(position, trialsForward[1], null));
-                        }
-                    }
-                }
-            }
-
         }
-        //if black piece - moving downward
-        else{
-            //the four potential moves
-            ChessPosition[] trialsForward = new ChessPosition[2];
-            ChessPosition[] trialsDiag = new ChessPosition[2];
-            trialsForward[0] = new ChessPosition(position.getRow()-1,position.getColumn()); //up 1
-            trialsForward[1] = new ChessPosition(position.getRow()-2,position.getColumn());    //up 2
-            trialsDiag[0] = new ChessPosition(position.getRow()-1,position.getColumn()-1);    //diag left
-            trialsDiag[1] = new ChessPosition(position.getRow()-1,position.getColumn()+1);    //diag right
 
-            //check diagonals first
-            for(ChessPosition trial : trialsDiag){
-                //making sure it's in bounds
-                if(trial.getRow()<9 && trial.getColumn()<9 && trial.getRow()>0 && trial.getColumn()>0){
-                    //make sure spot isn't empty
-                    if(board.getPiece(trial)!=null){
-                        ChessPiece occupant = board.getPiece(trial);
-                        //if the two pieces are on different teams
-                        if(occupant.getTeamColor()!=piece.getTeamColor()){
-                            if(trialsForward[0].getRow()==1){
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.KNIGHT));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.QUEEN));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.ROOK));
-                                pawnMoves.add(new ChessMove(position, trial, ChessPiece.PieceType.BISHOP));
-                            }
-                            else {
-                                pawnMoves.add(new ChessMove(position, trial, null));
-                            }
-                        }
-                    }
-                }
-            }
+        // --- Forward moves ---
+        ChessPosition oneAhead = trialsForward[0];
+        if (isInBounds(oneAhead) && board.getPiece(oneAhead) == null) {
+            if (oneAhead.getRow() == promoteRow) {
+                addPromotions(pawnMoves, position, oneAhead);
+            } else {
+                pawnMoves.add(new ChessMove(position, oneAhead, null));
 
-            //then check forwards
-            //making sure it's in bounds
-            if(trialsForward[0].getRow()<9 && trialsForward[0].getColumn()<9 && trialsForward[0].getRow()>0 && trialsForward[0].getColumn()>0) {
-                //make sure spot is empty
-                if (board.getPiece(trialsForward[0]) == null) {
-                    //if it needs to get promoted
-                    if(trialsForward[0].getRow()==1){
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.KNIGHT));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.QUEEN));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.ROOK));
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], ChessPiece.PieceType.BISHOP));
-                    }
-                    else{
-                        pawnMoves.add(new ChessMove(position, trialsForward[0], null));
-                    }
-
-                    //if it's in starting position
-                    if(position.getRow()==7){
-                        //and the second space is also empty
-                        if (board.getPiece(trialsForward[1]) == null) {
-                            pawnMoves.add(new ChessMove(position, trialsForward[1], null));
-                        }
+                // double move from start
+                if (position.getRow() == startRow) {
+                    ChessPosition twoAhead = trialsForward[1];
+                    if (isInBounds(twoAhead) && board.getPiece(twoAhead) == null) {
+                        pawnMoves.add(new ChessMove(position, twoAhead, null));
                     }
                 }
             }
@@ -323,5 +251,17 @@ public class PieceMovesCalculator {
 
         return pawnMoves;
     }
+
+    private boolean isInBounds(ChessPosition pos) {
+        return pos.getRow() >= 1 && pos.getRow() <= 8 && pos.getColumn() >= 1 && pos.getColumn() <= 8;
+    }
+
+    private void addPromotions(Set<ChessMove> moves, ChessPosition from, ChessPosition to) {
+        moves.add(new ChessMove(from, to, ChessPiece.PieceType.KNIGHT));
+        moves.add(new ChessMove(from, to, ChessPiece.PieceType.QUEEN));
+        moves.add(new ChessMove(from, to, ChessPiece.PieceType.ROOK));
+        moves.add(new ChessMove(from, to, ChessPiece.PieceType.BISHOP));
+    }
+
 
 }
