@@ -1,19 +1,24 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import dataaccess.SqlDataAccess;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.*;
+
+import javax.xml.crypto.Data;
 
 public class Server {
 
     private final Javalin server;
     private final UserService userService;
 
-    public Server() {
-        var dataAccess = new MemoryDataAccess();
+    public Server() throws DataAccessException {
+        var dataAccess = new SqlDataAccess();
+        var dataAccess2 = new MemoryDataAccess();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
