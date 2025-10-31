@@ -93,8 +93,8 @@ public class SQLDataAccess implements DataAccess {
             CREATE TABLE IF NOT EXISTS  user(
               `username` varchar(256) NOT NULL,
               `password` varchar(256) NOT NULL,
-              `email` varchar(256) NOT NULL),
-              PRIMARY KEY (`username`)
+              `email` varchar(256) NOT NULL,
+              PRIMARY KEY (`username`));
             """,
             """
             CREATE TABLE IF NOT EXISTS  game(
@@ -102,16 +102,14 @@ public class SQLDataAccess implements DataAccess {
               `whiteUsername` varchar(256) DEFAULT NULL,
               `blackUsername` varchar(256) DEFAULT NULL,
               `gameName` varchar(256) NOT NULL,
-              'game' TEXT,
-              PRIMARY KEY (`gameID`)
-              )
+              `game` TEXT,
+              PRIMARY KEY (`gameID`));
             """,
             """
             CREATE TABLE IF NOT EXISTS  auth(
               `authToken` varchar(256) NOT NULL,
               `username` varchar(256) NOT NULL,
-              PRIMARY KEY (`authToken`)
-              )
+              PRIMARY KEY (`authToken`));
             """
     };
 
