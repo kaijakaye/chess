@@ -11,8 +11,8 @@ public interface DataAccess {
     void clear() throws DataAccessException;
     void createUser(UserData user) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
-    void createGame(GameData game);
-    GameData getGame(int gameID);
+    void createGame(GameData game) throws DataAccessException;
+    GameData getGame(int gameID) throws DataAccessException;
     ListGamesResult listGames();
     void updateGame(GameData game);
     void createAuth(AuthData auth) throws DataAccessException ;

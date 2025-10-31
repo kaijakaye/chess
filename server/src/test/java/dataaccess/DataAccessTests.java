@@ -33,4 +33,15 @@ public class DataAccessTests {
         assertEquals(user.username(), authData2.username());
         assertFalse(authData2.authToken().isEmpty());
     }
+
+    @Test//positive login test
+    void createGameSuccessful() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        var user = new UserData("joe", "j@j.com", "toomanysecrets");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        var game = new GameData(2,"myGame");
+        userService.create(authData.authToken(),game);
+        assertEquals(db.getGame(game.getGameID()),game);
+    }
 }

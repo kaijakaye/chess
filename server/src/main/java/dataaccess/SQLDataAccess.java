@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
@@ -7,6 +8,7 @@ import model.ListGamesResult;
 import model.UserData;
 
 import javax.xml.crypto.Data;
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -66,13 +68,38 @@ public class SQLDataAccess implements DataAccess {
 
 
     @Override
-    public void createGame(GameData game) {
-
+    public void createGame(GameData game) throws DataAccessException {
+        var statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
+        changeDatabase(statement, game.getGameID(), game.getWhiteUsername(), game.getBlackUsername(), game.getGameName(), game.getGame());
     }
 
     @Override
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                ResultSet rs = ps.executeQuery();
+                if(!rs.next()){
+                    return null;
+                }
+                if(rs.getInt("gameID")==gameID){
+                    return readGame(rs);
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
+    }
+
+    private GameData readGame(ResultSet rs) throws SQLException {
+        var gameID = rs.getInt("gameID");
+        var whiteUsername = rs.getString("whiteUsername");
+        var blackUsername = rs.getString("blackUsername");
+        var gameName = rs.getString("gameName");
+        ChessGame game = new Gson().fromJson(rs.getString("game"), ChessGame.class);
+        return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
     }
 
     @Override
@@ -130,7 +157,13 @@ public class SQLDataAccess implements DataAccess {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
-                    ps.setObject(i+1,params[i]);
+                    //serialize ChessGame object to a String when storing it in database
+                    if(param instanceof ChessGame cGame){
+                        ps.setString(i+1,cGame.toString());
+                    }
+                    else{
+                        ps.setObject(i+1,params[i]);
+                    }
                 }
                 ps.executeUpdate();
             }
