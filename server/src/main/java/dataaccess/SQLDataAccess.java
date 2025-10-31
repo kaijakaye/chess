@@ -22,8 +22,13 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public void clear() {
-
+    public void clear() throws DataAccessException {
+        var statement = "TRUNCATE user";
+        changeDatabase(statement);
+        var statement2 = "TRUNCATE auth";
+        changeDatabase(statement2);
+        var statement3 = "TRUNCATE game";
+        changeDatabase(statement3);
     }
 
     @Override
@@ -89,13 +94,15 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username, password, email FROM user WHERE username=?";
+            var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return readAuth(rs);
-                    }
+                ResultSet rs = ps.executeQuery();
+                if(!rs.next()){
+                    return null;
+                }
+                if(rs.getString("authToken").equals(authToken)){
+                    return readAuth(rs);
                 }
             }
         } catch (Exception e) {

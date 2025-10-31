@@ -16,7 +16,7 @@ public class UserService {
         gameIDCounter = 1;
     }
 
-    public void clear(){
+    public void clear() throws Exception{
         dataAccess.clear();
     }
 
@@ -30,7 +30,7 @@ public class UserService {
         }
 
         dataAccess.createUser(user);
-        var authData = new AuthData(user.username(), generateAuthToken());
+        var authData = new AuthData(generateAuthToken(), user.username());
         dataAccess.createAuth(authData);
         return authData;
     }
@@ -49,12 +49,11 @@ public class UserService {
         }
 
         //if the password they entered doesn't match the username
-        //var existingUser = dataAccess.getUser(user.username());
         if(!user.password().equals(existingUser.password())){
             throw new UnauthorizedException();
         }
 
-        var authData = new AuthData(user.username(), generateAuthToken());
+        var authData = new AuthData(generateAuthToken(), user.username());
         dataAccess.createAuth(authData);
         return authData;
     }

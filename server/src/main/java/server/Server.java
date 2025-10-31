@@ -48,8 +48,15 @@ public class Server {
     }
 
     private void clear(Context ctx){
-        userService.clear();
-        ctx.result();
+        try{
+            userService.clear();
+            ctx.result();
+        }
+        catch(Exception e){
+            var msg = String.format("{ \"message\": \"%s\" }", e.getMessage());
+            ctx.status(getStatusCode(e)).result(msg);
+        }
+
     }
 
     private void register(Context ctx){
