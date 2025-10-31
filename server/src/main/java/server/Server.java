@@ -1,24 +1,31 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
-import dataaccess.SqlDataAccess;
+import dataaccess.SQLDataAccess;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.*;
-
-import javax.xml.crypto.Data;
 
 public class Server {
 
     private final Javalin server;
     private final UserService userService;
 
-    public Server() throws DataAccessException {
-        var dataAccess = new SqlDataAccess();
-        var dataAccess2 = new MemoryDataAccess();
+    public Server() {
+        DataAccess dataAccess;
+        try{
+            dataAccess = new SQLDataAccess();
+        }
+        catch(DataAccessException e){
+            dataAccess = new MemoryDataAccess();
+            System.out.print("failed to load SQL database, so we are defaulting to memory");
+        }
+
+
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.

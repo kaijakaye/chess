@@ -23,7 +23,7 @@ public class MemoryDataAccess implements DataAccess{
     }
 
     @Override
-    public void createUser(UserData user){
+    public void createUser(UserData user) {
         users.put(user.username(),user);
     }
 

@@ -8,7 +8,7 @@ import java.util.HashMap;
 public interface DataAccess {
 
     void clear();
-    void createUser(UserData user);
+    void createUser(UserData user) throws DataAccessException;
     UserData getUser(String username);
     void createGame(GameData game);
     GameData getGame(int gameID);
