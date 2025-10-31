@@ -41,13 +41,16 @@ public class UserService {
             throw new BadRequestException();
         }
 
+        var existingUser = dataAccess.getUser(user.username());
+
         //if the username hasn't been registered already
-        if(dataAccess.getUser(user.username())==null){
+        if(existingUser==null){
             throw new UnauthorizedException();
         }
 
         //if the password they entered doesn't match the username
-        if(!user.password().equals(dataAccess.getUser(user.username()).password())){
+        //var existingUser = dataAccess.getUser(user.username());
+        if(!user.password().equals(existingUser.password())){
             throw new UnauthorizedException();
         }
 

@@ -28,7 +28,7 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
-        var statement = "INSERT INTO `user` (username, password, email) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         changeDatabase(statement, user.username(), user.password(), user.email());
     }
 
@@ -38,10 +38,12 @@ public class SQLDataAccess implements DataAccess {
             var statement = "SELECT username, password, email FROM user WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return readUser(rs);
-                    }
+                ResultSet rs = ps.executeQuery();
+                if(!rs.next()){
+                    return null;
+                }
+                if(rs.getString("username").equals(username)){
+                    return readUser(rs);
                 }
             }
         } catch (Exception e) {
@@ -50,7 +52,6 @@ public class SQLDataAccess implements DataAccess {
         return null;
     }
 
-    //THIS NEEDS WORK
     private UserData readUser(ResultSet rs) throws SQLException {
         var username = rs.getString("username");
         var password = rs.getString("password");
@@ -86,13 +87,33 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, password, email FROM user WHERE username=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readAuth(rs);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 
-    @Override
-    public void deleteAuth(String authToken) {
+    private AuthData readAuth(ResultSet rs) throws SQLException {
+        var authToken = rs.getString("authToken");
+        var username = rs.getString("username");
+        return new AuthData(authToken, username);
+    }
 
+    @Override
+    public void deleteAuth(String authToken) throws DataAccessException {
+        var statement = "DELETE FROM auth WHERE authToken=?";
+        changeDatabase(statement, authToken);
     }
 
     //this is only used for updating/changing your database. not for fetching things

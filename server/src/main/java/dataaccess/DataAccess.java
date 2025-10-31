@@ -2,6 +2,7 @@ package dataaccess;
 
 import model.*;
 
+import javax.xml.crypto.Data;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -15,8 +16,8 @@ public interface DataAccess {
     ListGamesResult listGames();
     void updateGame(GameData game);
     void createAuth(AuthData auth) throws DataAccessException ;
-    AuthData getAuth(String authToken);
-    void deleteAuth(String authToken);
+    AuthData getAuth(String authToken) throws DataAccessException;
+    void deleteAuth(String authToken) throws DataAccessException;
 
 
 }
