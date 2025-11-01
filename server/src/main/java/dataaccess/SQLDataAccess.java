@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
@@ -103,13 +104,30 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public ListGamesResult listGames() {
-        return null;
+    public ListGamesResult listGames() throws DataAccessException {
+        var games = new ArrayList<GameData>();
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    var game = readGame(rs);
+                    games.add(game);
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read games: %s", e.getMessage()));
+        }
+
+        return new ListGamesResult(games);
     }
 
     @Override
-    public void updateGame(GameData game) {
-
+    public void updateGame(GameData game) throws DataAccessException {
+        var statement = "UPDATE game SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ? WHERE gameID = ?";
+        changeDatabase(statement, game.getWhiteUsername(), game.getBlackUsername(), game.getGameName(), game.getGame(), game.getGameID());
     }
 
     @Override

@@ -13,8 +13,8 @@ public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
     void createGame(GameData game) throws DataAccessException;
     GameData getGame(int gameID) throws DataAccessException;
-    ListGamesResult listGames();
-    void updateGame(GameData game);
+    ListGamesResult listGames() throws DataAccessException;
+    void updateGame(GameData game) throws DataAccessException;
     void createAuth(AuthData auth) throws DataAccessException ;
     AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(String authToken) throws DataAccessException;
