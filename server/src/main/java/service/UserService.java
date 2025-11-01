@@ -5,6 +5,7 @@ import dataaccess.DataAccess;
 import java.util.Collection;
 import java.util.UUID;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
 
@@ -49,7 +50,7 @@ public class UserService {
         }
 
         //if the password they entered doesn't match the username
-        if(!user.password().equals(existingUser.password())){
+        if(!BCrypt.checkpw(user.password(), existingUser.password())){
             throw new UnauthorizedException();
         }
 

@@ -6,6 +6,7 @@ import model.AuthData;
 import model.GameData;
 import model.ListGamesResult;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.xml.crypto.Data;
 import java.lang.reflect.Type;
@@ -37,7 +38,8 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void createUser(UserData user) throws DataAccessException {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        changeDatabase(statement, user.username(), user.password(), user.email());
+        String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+        changeDatabase(statement, user.username(), hashedPassword, user.email());
     }
 
     @Override
