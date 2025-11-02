@@ -15,6 +15,8 @@ public class DataAccessTests {
 
     private SQLDataAccess dataAccess;
     private UserData testUser;
+    private AuthData testAuth;
+    private GameData testGame;
 
     @BeforeEach
     @DisplayName("clear - positive case")
@@ -22,6 +24,8 @@ public class DataAccessTests {
         dataAccess = new SQLDataAccess();
         dataAccess.clear(); // optional if you have this method
         testUser = new UserData("testUser", "pw123", "ex@example.com");
+        testAuth = new AuthData("token123","testUser");
+        testGame = new GameData(123, null, null, "myGame", new ChessGame());
     }
 
     @Test
@@ -68,20 +72,107 @@ public class DataAccessTests {
         assertNull(retrieved);
     }
 
+    @Test
+    @DisplayName("createGame - positive case")
     void createGameSuccessful() throws Exception {
+        dataAccess.createGame(testGame);
 
+        GameData found = dataAccess.getGame(testGame.getGameID());
+        assertNotNull(found);
+        assertEquals(testGame.getGameID(), found.getGameID());
+        assertEquals(testGame.getGameName(), found.getGameName());
     }
 
+    @Test
+    @DisplayName("createGame - negative case (duplicate game info)")
     void createGameError() throws Exception {
+        dataAccess.createGame(testGame);
 
+        assertThrows(DataAccessException.class, () -> {
+            dataAccess.createGame(testGame);
+        });
     }
 
+    @Test
+    @DisplayName("getGame - positive case")
     void getGameSuccessful() throws Exception {
+        dataAccess.createGame(testGame);
+        GameData retrieved = dataAccess.getGame(testGame.getGameID());
+
+        assertNotNull(retrieved);
+        assertEquals(testGame.getGameID(), retrieved.getGameID());
+        assertEquals(testGame.getGameName(), retrieved.getGameName());
+        assertEquals(testGame.getGame(), retrieved.getGame());
+    }
+
+    @Test
+    @DisplayName("getGame - negative case (retrieving nonexisting game)")
+    void getGameError() throws Exception {
+        var retrieved = dataAccess.getGame(41948);
+
+        assertNull(retrieved);
+    }
+
+    @Test
+    @DisplayName("createAuth - positive case")
+    void createAuthSuccessful() throws Exception {
+        dataAccess.createAuth(testAuth);
+
+        AuthData found = dataAccess.getAuth(testAuth.authToken());
+        assertNotNull(found);
+        assertEquals(testAuth.authToken(), found.authToken());
+        assertEquals(testAuth.username(), found.username());
+    }
+
+    @Test
+    @DisplayName("createAuth - negative case (duplicate authToken)")
+    void createAuthError() throws Exception {
+        dataAccess.createAuth(testAuth);
+
+        assertThrows(DataAccessException.class, () -> {
+            dataAccess.createAuth(testAuth);
+        });
+    }
+
+    @Test
+    @DisplayName("getAuth - positive case")
+    void getAuthSuccessful() throws Exception {
+        dataAccess.createAuth(testAuth);
+        AuthData retrieved = dataAccess.getAuth(testAuth.authToken());
+
+        assertNotNull(retrieved);
+        assertEquals(testAuth.authToken(), retrieved.authToken());
+        assertEquals(testAuth.username(), retrieved.username());
 
     }
 
-    void getGameError() throws Exception {
+    @Test
+    @DisplayName("getAuth - negative case (retrieving nonexisting auth)")
+    void getAuthError() throws Exception {
+        var retrieved = dataAccess.getAuth("ghostAuth");
 
+        assertNull(retrieved);
+    }
+
+    @Test
+    @DisplayName("deleteAuth - positive case")
+    void deleteAuthSuccessful() throws Exception {
+        dataAccess.createAuth(testAuth);
+        dataAccess.deleteAuth(testAuth.authToken());
+
+        var retrieved = dataAccess.getAuth(testAuth.authToken());
+        assertNull(retrieved);
+
+    }
+
+    @Test
+    @DisplayName("deleteAuth - negative case")
+    void deleteAuthError() throws Exception {
+        String fakeToken = "nonexistentToken123";
+
+        assertDoesNotThrow(() -> dataAccess.deleteAuth(fakeToken));
+        var result = dataAccess.getAuth(fakeToken);
+        assertNull(result);
     }
 
 
