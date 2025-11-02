@@ -175,18 +175,50 @@ public class DataAccessTests {
         assertNull(result);
     }
 
+    @Test
+    @DisplayName("listGames - positive test")
+    void listGamesSuccessful() throws Exception {
+        // Arrange: create and insert a few games
+        var anotherGame = new GameData(12, null, null, "Another", new ChessGame());
+        dataAccess.createGame(testGame);
+        dataAccess.createGame(anotherGame);
+        var result = dataAccess.listGames();
 
-/*
-    void clear() throws DataAccessException;
-    void createUser(UserData user) throws DataAccessException;
-    UserData getUser(String username) throws DataAccessException;
-    void createGame(GameData game) throws DataAccessException;
-    GameData getGame(int gameID) throws DataAccessException;
-    ListGamesResult listGames() throws DataAccessException;
-    void updateGame(GameData game) throws DataAccessException;
-    void createAuth(AuthData auth) throws DataAccessException ;
-    AuthData getAuth(String authToken) throws DataAccessException;
-    void deleteAuth(String authToken) throws DataAccessException;
+        assertNotNull(result);
+        assertTrue(result.games().size() >= 2);
+    }
 
- */
+    @Test
+    @DisplayName("listGames - negative test (returns empty list when no games exist)")
+    void listGamesError() throws Exception {
+        var result = dataAccess.listGames();
+        assertNotNull(result);
+        assertTrue(result.games().isEmpty());
+    }
+
+    @Test
+    @DisplayName("updateGame - positive test")
+    public void updateGameSuccessful() throws Exception {
+        dataAccess.createGame(testGame);
+
+        // modify some fields
+        testGame.setBlackUsername("blackUser");
+        testGame.setWhiteUsername("whiteUser");
+
+        dataAccess.updateGame(testGame);
+        var updatedGame = dataAccess.getGame(testGame.getGameID());
+
+        assertNotNull(updatedGame);
+        assertEquals("blackUser", updatedGame.getBlackUsername());
+        assertEquals("whiteUser", updatedGame.getWhiteUsername());
+    }
+
+    @Test
+    @DisplayName("updateGame - negative test")
+    public void updateGameError() throws Exception {
+        var fakeGame = new GameData(67, "ghostW", "ghostB", "nonexistent game", new ChessGame());
+        var result = dataAccess.getGame(999);
+        assertNull(result);
+    }
+
 }
