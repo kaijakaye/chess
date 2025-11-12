@@ -2,6 +2,7 @@ package client;
 
 import model.*;
 import org.junit.jupiter.api.*;
+import request.LoginRequest;
 import server.Server;
 import ui.ServerFacade;
 
@@ -36,6 +37,14 @@ public class ServerFacadeTests {
     @Test
     void register() throws Exception {
         var authData = facade.register(new UserData("player1", "password", "p1@email.com"));
+        assertTrue(authData.authToken().length() > 10);
+    }
+
+    @Test
+    void login() throws Exception {
+        UserData userEx = new UserData("player2", "password", "p1@email.com");
+        var authData = facade.register(userEx);
+        var authData2 = facade.login(userEx);
         assertTrue(authData.authToken().length() > 10);
     }
 

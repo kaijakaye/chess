@@ -2,6 +2,7 @@ package ui;
 
 import com.google.gson.Gson;
 import model.*;
+import request.LoginRequest;
 
 import java.net.*;
 import java.net.http.*;
@@ -19,6 +20,12 @@ public class ServerFacade {
 
     public AuthData register(UserData user) throws Exception {
         var request = buildRequest("POST", "/user", user,null);
+        var response = sendRequest(request);
+        return handleResponse(response,AuthData.class);
+    }
+
+    public AuthData login(UserData user) throws Exception {
+        var request = buildRequest("POST", "/session", user,null);
         var response = sendRequest(request);
         return handleResponse(response,AuthData.class);
     }
@@ -58,7 +65,7 @@ public class ServerFacade {
         if (!isSuccessful(status)) {
             var body = response.body();
             if (body != null) {
-                throw new Exception("yuh");
+                throw new Exception("body has no content");
             }
 
             throw new Exception("other failure: " + status);
