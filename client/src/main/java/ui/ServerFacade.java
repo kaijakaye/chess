@@ -17,10 +17,20 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body) {
+    public AuthData register(UserData user) throws Exception {
+        var request = buildRequest("POST", "/user", user,null);
+        var response = sendRequest(request);
+        return handleResponse(response,AuthData.class);
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
+
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
+        if(authToken!=null){
+            request.header("authorization",authToken);
+        }
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
         }
