@@ -35,7 +35,7 @@ public class PreLoginUI {
 
             try {
                 result = eval(line);
-                System.out.print(BLUE + result);
+                System.out.print(result);
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
@@ -79,6 +79,7 @@ public class PreLoginUI {
             var email = params[2];
             var userToSendIn = new UserData(username,password,email);
             var returnedAuth = server.register(userToSendIn);
+            jumpToPost.setAuth(returnedAuth);
             return String.format("You registered successfully as %s.", username);
         }
         throw new Exception("Invalid input");
@@ -91,6 +92,7 @@ public class PreLoginUI {
             var password = params[1];
             var userToSendIn = new UserData(username,password,null);
             var returnedAuth = server.login(userToSendIn);
+            jumpToPost.setAuth(returnedAuth);
             return String.format("You logged in successfully as %s.", username);
         }
         throw new Exception("Invalid input");
