@@ -41,6 +41,24 @@ public class ServerFacade {
         var result = handleResponse(response,null);
     }
 
+    public GameData createGame(AuthData auth, GameData game) throws Exception {
+        var request = buildRequest("POST", "/game", game, auth.authToken());
+        var response = sendRequest(request);
+        return handleResponse(response,GameData.class);
+    }
+
+    public void joinGame(AuthData auth, JoinGameRequest joinReq) throws Exception {
+        var request = buildRequest("PUT", "/game", joinReq, auth.authToken());
+        var response = sendRequest(request);
+        var result = handleResponse(response,null);
+    }
+
+    public ListGamesResult listGames(AuthData auth) throws Exception {
+        var request = buildRequest("GET", "/game", null, auth.authToken());
+        var response = sendRequest(request);
+        return handleResponse(response,ListGamesResult.class);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
 
         var request = HttpRequest.newBuilder()
@@ -76,7 +94,7 @@ public class ServerFacade {
         if (!isSuccessful(status)) {
             var body = response.body();
             if (body != null) {
-                throw new Exception("body has no content");
+                throw new Exception("failure: " +  body);
             }
 
             throw new Exception("other failure: " + status);
