@@ -74,12 +74,6 @@ public class PostLoginUI {
     }
 
     public String help() {
-        /*if (state == State.SIGNEDOUT) {
-            return """
-                    - signIn <yourname>
-                    - quit
-                    """;
-        }*/
         return """
                 quit - no more playing chess
                 help - possible commands
@@ -92,11 +86,4 @@ public class PostLoginUI {
         }
     }
 
-    public AuthData getAuth() {
-        return auth;
-    }
-
-    public void setAuth(AuthData auth) {
-        this.auth = auth;
-    }
 }
