@@ -1,5 +1,6 @@
 import chess.*;
-import ui.PreLoginUI;
+import model.AuthData;
+import ui.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,7 +12,20 @@ public class Main {
         }
 
         try {
-            new PreLoginUI(serverUrl).run();
+            PreLoginUI preLogin = new PreLoginUI(serverUrl);
+            var auth = preLogin.run();
+            //prelogin will return null when the user types quit!
+            while(auth!=null){
+                PostLoginLitmus didTheyJoinTheGame = new PostLoginUI(serverUrl,auth).run();
+                if(didTheyJoinTheGame.joinedGame()){
+                    var doNothing = 0;
+                    //later here we'll call the Gameplay thingy
+                }
+                else{
+                    auth = preLogin.run();
+                }
+            }
+
 
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());

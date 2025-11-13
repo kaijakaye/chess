@@ -3,24 +3,21 @@ package ui;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import com.google.gson.Gson;
 import model.*;
 
 import javax.management.Notification;
 
-import static java.awt.Color.*;
-
 public class PreLoginUI {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
-    private PostLoginUI jumpToPost;
+    //private PostLoginUI jumpToPost;
+    private AuthData auth;
 
     public PreLoginUI(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
-        jumpToPost = new PostLoginUI(serverUrl);
     }
 
-    public void run() {
+    public AuthData run() {
         System.out.println(" Let's play some chess. Sign in to start.");
         System.out.print(help());
 
@@ -28,7 +25,7 @@ public class PreLoginUI {
         var result = "";
         while (!result.equals("quit")) {
             if(state==State.SIGNEDIN){
-                jumpToPost.run();
+                return auth;
             }
             printPrompt();
             String line = scanner.nextLine();
@@ -42,6 +39,7 @@ public class PreLoginUI {
             }
         }
         System.out.println();
+        return null;
     }
 
 
@@ -78,8 +76,7 @@ public class PreLoginUI {
             var password = params[1];
             var email = params[2];
             var userToSendIn = new UserData(username,password,email);
-            var returnedAuth = server.register(userToSendIn);
-            jumpToPost.setAuth(returnedAuth);
+            auth = server.register(userToSendIn);
             return String.format("You registered successfully as %s.", username);
         }
         throw new Exception("Invalid input");
@@ -91,22 +88,15 @@ public class PreLoginUI {
             var username = params[0];
             var password = params[1];
             var userToSendIn = new UserData(username,password,null);
-            var returnedAuth = server.login(userToSendIn);
-            jumpToPost.setAuth(returnedAuth);
+            auth = server.login(userToSendIn);
             return String.format("You logged in successfully as %s.", username);
         }
         throw new Exception("Invalid input");
     }
 
     public String help() {
-        /*if (state == State.SIGNEDOUT) {
-            return """
-                    - signIn <yourname>
-                    - quit
-                    """;
-        }*/
         return """
-                register <USERNAME> <PASSWORD> <EMAIL> - to create an account 
+                register <USERNAME> <PASSWORD> <EMAIL> - to create an account
                 login <USERNAME> <PASSWORD> - to play chess
                 quit - no more playing chess
                 help - possible commands

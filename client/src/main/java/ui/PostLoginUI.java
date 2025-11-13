@@ -11,11 +11,12 @@ public class PostLoginUI {
     private State state = State.SIGNEDIN;
     private AuthData auth;
 
-    public PostLoginUI(String serverUrl) throws Exception {
+    public PostLoginUI(String serverUrl,AuthData auth) throws Exception {
         server = new ServerFacade(serverUrl);
+        this.auth = auth;
     }
 
-    public void run() {
+    public PostLoginLitmus run() {
         System.out.println(" Let's play some chess. Sign in to start.");
         System.out.print(help());
 
@@ -37,6 +38,7 @@ public class PostLoginUI {
             }
         }
         System.out.println();
+        return new PostLoginLitmus(false,null);
     }
 
 
