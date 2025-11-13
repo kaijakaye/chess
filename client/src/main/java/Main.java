@@ -13,23 +13,12 @@ public class Main {
 
         try {
             PreLoginUI preLogin = new PreLoginUI(serverUrl);
-            var auth = preLogin.run();
-            //prelogin will return null when the user types quit!
-            while(auth!=null){
-                PostLoginLitmus didTheyJoinTheGame = new PostLoginUI(serverUrl,auth).run();
-                if(didTheyJoinTheGame.joinedGame()){
-                    var doNothing = 0;
-                    //later here we'll call the Gameplay thingy
-                }
-                else{
-                    auth = preLogin.run();
-                }
-            }
-
-
+            preLogin.run();
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }
+
+        System.out.println("Thanks for playing!");
 
 
     }

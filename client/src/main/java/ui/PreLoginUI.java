@@ -10,14 +10,14 @@ import javax.management.Notification;
 public class PreLoginUI {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
-    //private PostLoginUI jumpToPost;
-    private AuthData auth;
+    private PostLoginUI jumpToPost;
 
     public PreLoginUI(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
+        jumpToPost = new PostLoginUI(serverUrl, null);
     }
 
-    public AuthData run() {
+    public void run() {
         System.out.println(" Let's play some chess. Sign in to start.");
         System.out.print(help());
 
@@ -25,8 +25,9 @@ public class PreLoginUI {
         var result = "";
         while (!result.equals("quit")) {
             if(state==State.SIGNEDIN){
-                return auth;
+                jumpToPost.run();
             }
+            state = State.SIGNEDOUT;
             printPrompt();
             String line = scanner.nextLine();
 
@@ -39,13 +40,7 @@ public class PreLoginUI {
             }
         }
         System.out.println();
-        return null;
-    }
-
-
-    public void notify(Notification notification) {
-        System.out.println(notification.getMessage());
-        printPrompt();
+        return;
     }
 
     private void printPrompt() {
@@ -76,7 +71,8 @@ public class PreLoginUI {
             var password = params[1];
             var email = params[2];
             var userToSendIn = new UserData(username,password,email);
-            auth = server.register(userToSendIn);
+            var returnedAuth = server.register(userToSendIn);
+            jumpToPost.setAuth(returnedAuth);
             return String.format("You registered successfully as %s.", username);
         }
         throw new Exception("Invalid input");
@@ -88,7 +84,8 @@ public class PreLoginUI {
             var username = params[0];
             var password = params[1];
             var userToSendIn = new UserData(username,password,null);
-            auth = server.login(userToSendIn);
+            var returnedAuth = server.login(userToSendIn);
+            jumpToPost.setAuth(returnedAuth);
             return String.format("You logged in successfully as %s.", username);
         }
         throw new Exception("Invalid input");

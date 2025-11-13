@@ -16,15 +16,15 @@ public class PostLoginUI {
         this.auth = auth;
     }
 
-    public PostLoginLitmus run() {
-        System.out.println(" Let's play some chess. Sign in to start.");
+    public void run() {
+        System.out.println("\nNow you have some more options. Sign in to start.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("quit")) {
+        while(true) {
             if(state==State.SIGNEDOUT){
-                break;
+                return;
             }
             printPrompt();
             String line = scanner.nextLine();
@@ -37,20 +37,11 @@ public class PostLoginUI {
                 System.out.print(msg);
             }
         }
-        System.out.println();
-        return new PostLoginLitmus(false,null);
-    }
-
-
-    public void notify(Notification notification) {
-        System.out.println(notification.getMessage());
-        printPrompt();
     }
 
     private void printPrompt() {
         System.out.print("\n" + ">>> ");
     }
-
 
     public String eval(String input) {
         try {
@@ -59,7 +50,6 @@ public class PostLoginUI {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "logout" -> logout();
-                case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception ex) {
@@ -70,12 +60,13 @@ public class PostLoginUI {
     public String logout() throws Exception {
         state = State.SIGNEDOUT;
         server.logout(auth);
+        auth = null;
         return "You logged out successfully.";
     }
 
     public String help() {
         return """
-                quit - no more playing chess
+                logout - log out & return to start menu
                 help - possible commands
                 """;
     }
@@ -86,4 +77,11 @@ public class PostLoginUI {
         }
     }
 
+    public AuthData getAuth() {
+        return auth;
+    }
+
+    public void setAuth(AuthData auth) {
+        this.auth = auth;
+    }
 }
