@@ -2,7 +2,6 @@ package ui;
 
 import com.google.gson.Gson;
 import model.*;
-import request.LoginRequest;
 
 import java.net.*;
 import java.net.http.*;
@@ -18,6 +17,12 @@ public class ServerFacade {
         serverUrl = url;
     }
 
+    public void clear() throws Exception {
+        var request = buildRequest("DELETE", "/db", null, null);
+        var response = sendRequest(request);
+        var result = handleResponse(response,null);
+    }
+
     public AuthData register(UserData user) throws Exception {
         var request = buildRequest("POST", "/user", user,null);
         var response = sendRequest(request);
@@ -28,6 +33,12 @@ public class ServerFacade {
         var request = buildRequest("POST", "/session", user,null);
         var response = sendRequest(request);
         return handleResponse(response,AuthData.class);
+    }
+
+    public void logout(AuthData auth) throws Exception {
+        var request = buildRequest("DELETE", "/session", null, auth.authToken());
+        var response = sendRequest(request);
+        var result = handleResponse(response,null);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {

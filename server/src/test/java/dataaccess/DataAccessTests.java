@@ -22,7 +22,7 @@ public class DataAccessTests {
     @DisplayName("clear - positive case")
     void setup() throws DataAccessException {
         dataAccess = new SQLDataAccess();
-        dataAccess.clear(); // optional if you have this method
+        dataAccess.clear();
         testUser = new UserData("testUser", "pw123", "ex@example.com");
         testAuth = new AuthData("token123","testUser");
         testGame = new GameData(123, null, null, "myGame", new ChessGame());

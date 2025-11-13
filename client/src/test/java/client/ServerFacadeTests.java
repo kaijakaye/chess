@@ -2,11 +2,10 @@ package client;
 
 import model.*;
 import org.junit.jupiter.api.*;
-import request.LoginRequest;
 import server.Server;
 import ui.ServerFacade;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -21,6 +20,11 @@ public class ServerFacadeTests {
         System.out.println("Started test HTTP server on " + port);
         var url = "http://localhost:" + port;
         facade = new ServerFacade(url);
+    }
+
+    @BeforeEach
+    public void clearTheServer() throws Exception {
+        facade.clear();
     }
 
     @AfterAll
@@ -46,6 +50,15 @@ public class ServerFacadeTests {
         var authData = facade.register(userEx);
         var authData2 = facade.login(userEx);
         assertTrue(authData.authToken().length() > 10);
+    }
+
+    @Test
+    void logoutSuccess() throws Exception {
+        var user = new UserData("logoutUser", "password", "logout@email.com");
+        var auth = facade.register(user);
+
+        // Logging out with a valid token should NOT throw an exception
+        assertDoesNotThrow(() -> facade.logout(auth));
     }
 
 }
