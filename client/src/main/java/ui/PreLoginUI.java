@@ -5,7 +5,6 @@ import java.util.Scanner;
 
 import model.*;
 
-import javax.management.Notification;
 
 public class PreLoginUI {
     private final ServerFacade server;

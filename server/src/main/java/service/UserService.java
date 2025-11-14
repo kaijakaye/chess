@@ -10,11 +10,9 @@ import org.mindrot.jbcrypt.BCrypt;
 public class UserService {
 
     private final DataAccess dataAccess;
-    private int gameIDCounter;
 
     public UserService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
-        gameIDCounter = 1;
     }
 
     public void clear() throws Exception{
@@ -83,8 +81,10 @@ public class UserService {
             throw new UnauthorizedException();
         }
 
-        game.setGameID(gameIDCounter);
-        ++gameIDCounter;
+        ListGamesResult listOfGames = list(authToken);
+        int howManyGamesCurrently = listOfGames.games().size();
+
+        game.setGameID(howManyGamesCurrently + 1);
         dataAccess.createGame(game);
         return game;
     }
