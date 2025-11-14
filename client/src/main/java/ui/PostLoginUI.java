@@ -1,9 +1,11 @@
 package ui;
 
+import chess.ChessGame;
 import model.*;
 
 import javax.management.Notification;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class PostLoginUI {
@@ -52,6 +54,7 @@ public class PostLoginUI {
                 case "logout" -> logout();
                 case "create" -> createGame(params);
                 case "list" -> listGames();
+                case "join" -> joinGame(params);
                 default -> help();
             };
         } catch (Exception ex) {
@@ -83,6 +86,36 @@ public class PostLoginUI {
             ++counter;
         }
         return "\nThat's the list!\n";
+    }
+
+    public String joinGame(String... params) throws Exception {
+        if (params.length == 2) {
+            int gameID;
+            try {
+                gameID = Integer.parseInt(params[0]);
+            } catch (NumberFormatException e) {
+                return "Join via game number, not game name";
+            }
+            JoinGameRequest gameReq;
+            //checking validity of white or black stuff
+            if(Objects.equals(params[1], "white")||Objects.equals(params[1], "WHITE")){
+                gameReq = new JoinGameRequest(ChessGame.TeamColor.WHITE,gameID);
+            }
+            else if(Objects.equals(params[1], "black")||Objects.equals(params[1], "BLACK")){
+                gameReq = new JoinGameRequest(ChessGame.TeamColor.BLACK,gameID);
+            }
+            else{
+                return "You have to join as white or black.";
+            }
+            try{
+                server.joinGame(auth,gameReq);
+                return String.format("Successfully joined game %d as %s player.", gameID, params[1]);
+            }
+            catch (Exception e) {
+                return String.format("Joining game %d was unsuccessful.", gameID);
+            }
+        }
+        throw new Exception("Invalid input");
     }
 
     public String logout() throws Exception {
