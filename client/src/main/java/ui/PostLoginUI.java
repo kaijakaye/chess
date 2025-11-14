@@ -103,12 +103,6 @@ public class PostLoginUI {
                 """;
     }
 
-    private void assertSignedIn() throws Exception {
-        if (state == State.SIGNEDOUT) {
-            throw new Exception("You must sign in");
-        }
-    }
-
     public AuthData getAuth() {
         return auth;
     }
