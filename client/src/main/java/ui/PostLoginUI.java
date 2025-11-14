@@ -17,7 +17,7 @@ public class PostLoginUI {
     }
 
     public void run() {
-        System.out.println("\nNow you have some more options. Sign in to start.");
+        System.out.println("\n\nNow you have some more options.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -50,11 +50,34 @@ public class PostLoginUI {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "logout" -> logout();
+                case "create" -> createGame(params);
+                case "list" -> listGames();
                 default -> help();
             };
         } catch (Exception ex) {
             return ex.getMessage();
         }
+    }
+
+    public String createGame(String... params) throws Exception {
+        if (params.length == 1) {
+            var gameName = params[0];
+            var gameToSendIn = new GameData(gameName);
+            var returnedGame = server.createGame(auth,gameToSendIn);
+            return String.format("Successfully created game %s.", gameName);
+        }
+        throw new Exception("Invalid input");
+    }
+
+    public String listGames() throws Exception {
+        ListGamesResult result = server.listGames(auth);
+        int counter = 1;
+        for(GameData game : result.games()){
+            System.out.printf("%d.  %s  whiteUser: %s   blackUser: %s\n",
+                    counter, game.getGameName(), game.getWhiteUsername(), game.getBlackUsername());
+            ++counter;
+        }
+        return "\nThat's the list!\n";
     }
 
     public String logout() throws Exception {
@@ -66,6 +89,10 @@ public class PostLoginUI {
 
     public String help() {
         return """
+                create <NAME> - create a new game called NAME
+                list - see the list of all games
+                join <ID> [WHITE|BLACK] - join an existing game
+                observe <ID> - watch a game
                 logout - log out & return to start menu
                 help - possible commands
                 """;

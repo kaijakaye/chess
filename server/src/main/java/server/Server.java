@@ -73,7 +73,6 @@ public class Server {
         catch(Exception ex){
             var msg = String.format("{ \"message\": \"%s\" }", ex.getMessage());
             ctx.status(getStatusCode(ex)).result(msg);
-
         }
 
     }
