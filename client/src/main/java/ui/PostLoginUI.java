@@ -3,13 +3,11 @@ package ui;
 import chess.ChessGame;
 import model.*;
 
-import javax.management.Notification;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.function.BiConsumer;
 
 import static ui.EscapeSequences.*;
 
@@ -17,11 +15,6 @@ public class PostLoginUI {
     private final ServerFacade server;
     private State state = State.SIGNEDIN;
     private AuthData auth;
-
-    //FOR THE BOARD
-    private static final int BOARD_SIZE_IN_SQUARES = 8;
-    private static final int SQUARE_SIZE_IN_PADDED_CHARS = 8;
-    private static final int LINE_WIDTH_IN_PADDED_CHARS = 1;
 
     public PostLoginUI(String serverUrl,AuthData auth) throws Exception {
         server = new ServerFacade(serverUrl);
@@ -111,9 +104,11 @@ public class PostLoginUI {
             //checking validity of white or black stuff
             if(Objects.equals(params[1], "white")||Objects.equals(params[1], "WHITE")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.WHITE,gameID);
+                printGameBoard(ChessGame.TeamColor.WHITE);
             }
             else if(Objects.equals(params[1], "black")||Objects.equals(params[1], "BLACK")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.BLACK,gameID);
+                printGameBoard(ChessGame.TeamColor.BLACK);
             }
             else{
                 return "You have to join as white or black.";
@@ -131,7 +126,7 @@ public class PostLoginUI {
 
     public String observeGame(String... params) throws Exception {
         printGameBoard(ChessGame.TeamColor.WHITE);
-        return "I'll implement u later";
+        return "Enjoy the show";
     }
 
     public String logout() throws Exception {
@@ -152,10 +147,6 @@ public class PostLoginUI {
                 """;
     }
 
-    public AuthData getAuth() {
-        return auth;
-    }
-
     public void setAuth(AuthData auth) {
         this.auth = auth;
     }
@@ -166,27 +157,45 @@ public class PostLoginUI {
     }
 
     private static void drawBoard(PrintStream out, ChessGame.TeamColor who) {
-        drawLoadedRowOfSquares(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,true,true);
+        boolean q1st;
+        if(who== ChessGame.TeamColor.WHITE){
+            q1st = true;
+        }
+        else{
+            q1st = false;
+        }
+
+        printHorizontalIndex(out,who);
+        drawLoadedRowOfSquares(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,q1st,true);
         drawRowOfPawns(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,true);
         for(int quickCount = 1; quickCount<=2; quickCount++){
             drawEmptyRow(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY);
             drawEmptyRow(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY);
         }
         drawRowOfPawns(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,false);
-        drawLoadedRowOfSquares(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,true,false);
+        drawLoadedRowOfSquares(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,q1st,false);
+        printHorizontalIndex(out,who);
+    }
+
+    private static void printHorizontalIndex(PrintStream out, ChessGame.TeamColor who) {
+        String[] indices;
+        if(who==ChessGame.TeamColor.WHITE){
+            indices = new String[]{"a","b","c","d","e","f","g","h"};
+        }
+        else{
+            indices = new String[]{"h","g","f","e","d","c","b","a"};
+        }
+
+        for(int sqCounter = 0; sqCounter < 8; sqCounter++){
+            out.print("  " + indices[sqCounter] + "  ");
+        }
+        out.print("\n");
     }
 
     private static void drawLoadedRowOfSquares(PrintStream out,
                                                String firstBG, String firstTxt,
                                                String secondBG, String secondTxt,
                                                ChessGame.TeamColor who, boolean queenFirst, boolean isEnemy) {
-
-        // Pick piece prefix (WHITE_* or BLACK_*)
-        String rook   = (who == ChessGame.TeamColor.WHITE) ? WHITE_ROOK   : BLACK_ROOK;
-        String knight = (who == ChessGame.TeamColor.WHITE) ? WHITE_KNIGHT : BLACK_KNIGHT;
-        String bishop = (who == ChessGame.TeamColor.WHITE) ? WHITE_BISHOP : BLACK_BISHOP;
-        String queen  = (who == ChessGame.TeamColor.WHITE) ? WHITE_QUEEN  : BLACK_QUEEN;
-        String king   = (who == ChessGame.TeamColor.WHITE) ? WHITE_KING   : BLACK_KING;
 
         String pieceColor;
         if(!isEnemy){
@@ -196,30 +205,37 @@ public class PostLoginUI {
             pieceColor = (who == ChessGame.TeamColor.WHITE) ? SET_TEXT_COLOR_BLACK : SET_TEXT_COLOR_WHITE;
         }
 
-
         String[] pieces = {
-                rook,
-                knight,
-                bishop,
-                queenFirst ? queen : king,
-                queenFirst ? king : queen,
-                bishop,
-                knight,
-                rook
+                ROOK,
+                KNIGHT,
+                BISHOP,
+                queenFirst ? QUEEN : KING,
+                queenFirst ? KING : QUEEN,
+                BISHOP,
+                KNIGHT,
+                ROOK
         };
 
         for (int i = 0; i < 8; i++) {
             boolean first = (i % 2 == 0);
 
-            if (first) setColor(out, firstBG, firstTxt);
-            else setColor(out, secondBG, secondTxt);
+            if (first){
+                setColor(out, firstBG, firstTxt);
+            }
+            else{
+                setColor(out, secondBG, secondTxt);
+            }
 
             out.print(" ");
             out.print(pieceColor);
             out.print(pieces[i]);
 
-            if (first) setColor(out, firstBG, firstTxt);
-            else setColor(out, secondBG, secondTxt);
+            if (first){
+                setColor(out, firstBG, firstTxt);
+            }
+            else{
+                setColor(out, secondBG, secondTxt);
+            }
 
             out.print(" ");
         }
@@ -234,7 +250,6 @@ public class PostLoginUI {
                                                String secondBG, String secondTxt,
                                                ChessGame.TeamColor who, boolean isEnemy) {
 
-        String pawn = (who == ChessGame.TeamColor.WHITE) ? WHITE_PAWN : BLACK_PAWN;
         String pieceColor;
         if(!isEnemy){
             pieceColor = (who == ChessGame.TeamColor.WHITE) ? SET_TEXT_COLOR_WHITE : SET_TEXT_COLOR_BLACK;
@@ -246,15 +261,23 @@ public class PostLoginUI {
         for (int i = 0; i < 8; i++) {
             boolean first = (i % 2 == 0);
 
-            if (first) setColor(out, firstBG, firstTxt);
-            else setColor(out, secondBG, secondTxt);
+            if (first){
+                setColor(out, firstBG, firstTxt);
+            }
+            else{
+                setColor(out, secondBG, secondTxt);
+            }
 
             out.print(" ");
             out.print(pieceColor);
-            out.print(pawn);
+            out.print(PAWN);
 
-            if (first) setColor(out, firstBG, firstTxt);
-            else setColor(out, secondBG, secondTxt);
+            if (first){
+                setColor(out, firstBG, firstTxt);
+            }
+            else{
+                setColor(out, secondBG, secondTxt);
+            }
 
             out.print(" ");
         }
@@ -271,12 +294,14 @@ public class PostLoginUI {
         for (int i = 0; i < 8; i++) {
             boolean first = (i % 2 == 0);
 
-            if (first) setColor(out, firstBG, firstTxt);
-            else setColor(out, secondBG, secondTxt);
+            if (first){
+                setColor(out, firstBG, firstTxt);
+            }
+            else{
+                setColor(out, secondBG, secondTxt);
+            }
 
-            out.print(" ");
-            out.print(EMPTY);
-            out.print(" ");
+            out.print("     ");
         }
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
