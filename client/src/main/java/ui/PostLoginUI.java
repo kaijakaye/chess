@@ -63,8 +63,13 @@ public class PostLoginUI {
         if (params.length == 1) {
             var gameName = params[0];
             var gameToSendIn = new GameData(gameName);
-            var returnedGame = server.createGame(auth,gameToSendIn);
-            return String.format("Successfully created game %s.", gameName);
+            try{
+                var returnedGame = server.createGame(auth,gameToSendIn);
+                return String.format("Successfully created game %s.", gameName);
+            }
+            catch (Exception e) {
+                return String.format("Creating game %s was unsuccessful.", gameName);
+            }
         }
         throw new Exception("Invalid input");
     }
