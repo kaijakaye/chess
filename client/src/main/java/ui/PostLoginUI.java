@@ -165,15 +165,39 @@ public class PostLoginUI {
             q1st = false;
         }
 
-        printHorizontalIndex(out,who);
-        drawLoadedRowOfSquares(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,q1st,true);
-        drawRowOfPawns(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,true);
-        for(int quickCount = 1; quickCount<=2; quickCount++){
-            drawEmptyRow(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY);
-            drawEmptyRow(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY);
+        String[] indices;
+        if(who==ChessGame.TeamColor.WHITE){
+            indices = new String[]{" 8 "," 7 "," 6 "," 5 "," 4 "," 3 "," 2 "," 1 "};
         }
+        else{
+            indices = new String[]{" 1 "," 2 "," 3 "," 4 "," 5 "," 6 "," 7 "," 8 "};
+        }
+
+        printHorizontalIndex(out,who);
+        out.print(indices[0]);
+        drawLoadedRowOfSquares(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,q1st,true);
+        out.print(indices[0] + "\n");
+        out.print(indices[1]);
+        drawRowOfPawns(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,true);
+        out.print(indices[1] + "\n");
+        out.print(indices[2]);
+        drawEmptyRow(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY);
+        out.print(indices[2] + "\n");
+        out.print(indices[3]);
+        drawEmptyRow(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY);
+        out.print(indices[3] + "\n");
+        out.print(indices[4]);
+        drawEmptyRow(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY);
+        out.print(indices[4] + "\n");
+        out.print(indices[5]);
+        drawEmptyRow(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY);
+        out.print(indices[5] + "\n");
+        out.print(indices[6]);
         drawRowOfPawns(out,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,who,false);
+        out.print(indices[6] + "\n");
+        out.print(indices[7]);
         drawLoadedRowOfSquares(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,q1st,false);
+        out.print(indices[7] + "\n");
         printHorizontalIndex(out,who);
     }
 
@@ -185,6 +209,8 @@ public class PostLoginUI {
         else{
             indices = new String[]{"h","g","f","e","d","c","b","a"};
         }
+
+        out.print("   ");
 
         for(int sqCounter = 0; sqCounter < 8; sqCounter++){
             out.print("  " + indices[sqCounter] + "  ");
@@ -242,7 +268,6 @@ public class PostLoginUI {
 
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
-        out.println();
     }
 
     private static void drawRowOfPawns(PrintStream out,
@@ -284,7 +309,6 @@ public class PostLoginUI {
 
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
-        out.println();
     }
 
     private static void drawEmptyRow(PrintStream out,
@@ -305,7 +329,6 @@ public class PostLoginUI {
         }
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
-        out.println();
     }
 
     private static void setColor(PrintStream out, String bg, String txt) {
