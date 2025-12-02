@@ -54,16 +54,14 @@ public class ConnectionManager {
         }
     }
 
-    /*public void broadcastToAll(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
+    public void broadcastToAll(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
         Collection<Session> sessions = connections.get(gameID);
         if (sessions == null) return;
 
         String msg = new Gson().toJson(message);
 
         for (Session s : sessions) {
-            if (s.isOpen() && !s.equals(excludeSession)) {
-                s.getRemote().sendString(msg);
-            }
+            s.getRemote().sendString(msg);
         }
-    }*/
+    }
 }

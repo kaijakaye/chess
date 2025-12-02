@@ -13,6 +13,7 @@ import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
 import service.UserService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -35,18 +36,16 @@ public class WebSocketHandler {
     }
 
     public void handleMessage(WsMessageContext ctx) {
-        try {
+        try{
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command.getGameID(), command.getColor(), ctx.session);
+                case CONNECT -> connect(command, ctx.session);
                 //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
                 //case LEAVE -> exit(command.visitorName(), ctx.session);
                 //case RESIGN -> exit(command.visitorName(), ctx.session);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -54,20 +53,40 @@ public class WebSocketHandler {
         System.out.println("Websocket closed");
     }
 
-    private void connect(int id, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
-        connections.add(id, session);
-        var gameInfo = userService.getDataAccess().getGame(id);
-        String message;
-        if(color==ChessGame.TeamColor.WHITE){
-            message = String.format("%s successfully added to game %d as %s user", gameInfo.getWhiteUsername(), id, color);
+    private void connect(UserGameCommand command, Session session) throws IOException{
+        try{
+            var id = command.getGameID();
+            var color = command.getColor();
+            connections.add(id, session);
+            var gameInfo = userService.getDataAccess().getGame(id);
+            var authInfo = userService.getDataAccess().getAuth(command.getAuthToken());
+
+            if(gameInfo==null){
+                throw new DataAccessException("not enough info");
+            }
+            if(authInfo==null){
+                throw new DataAccessException("bad authtoken");
+            }
+
+            String message;
+            if (color == ChessGame.TeamColor.WHITE) {
+                message = String.format("%s successfully added to game %d as %s player", gameInfo.getWhiteUsername(), id, color);
+            } else if (color == ChessGame.TeamColor.BLACK) {
+                message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
+            } else {
+                message = String.format("%s successfully added to game %d as observer", gameInfo.getBlackUsername(), id);
+            }
+
+            var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
+            var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcastToSelf(id, session, messageToSelf);
+            connections.broadcastToOthers(id, session, messageToWorld);
+        } catch (DataAccessException e) {
+            var message = "Error";
+            var messageToEveryone = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            connections.broadcastToSelf(command.getGameID(), session, messageToEveryone);
         }
-        else{
-            message = String.format("%s successfully added to game %d as %s user", gameInfo.getBlackUsername(), id, color);
-        }
-        var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
-        var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcastToSelf(id, session, messageToSelf);
-        connections.broadcastToOthers(id, session, messageToWorld);
+
     }
 
     private void leave(int id, Session session) throws IOException {
