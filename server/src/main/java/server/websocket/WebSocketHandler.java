@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 //import exception.ResponseException;
 import dataaccess.DataAccessException;
@@ -37,7 +38,7 @@ public class WebSocketHandler {
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command.getGameID(), ctx.session);
+                case CONNECT -> connect(command.getGameID(), command.getColor(), ctx.session);
                 //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
                 //case LEAVE -> exit(command.visitorName(), ctx.session);
                 //case RESIGN -> exit(command.visitorName(), ctx.session);
@@ -53,10 +54,16 @@ public class WebSocketHandler {
         System.out.println("Websocket closed");
     }
 
-    private void connect(int id, Session session) throws IOException, DataAccessException {
+    private void connect(int id, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
         connections.add(id, session);
-        var message = String.format("New user added to game %d", id);
         var gameInfo = userService.getDataAccess().getGame(id);
+        String message;
+        if(color==ChessGame.TeamColor.WHITE){
+            message = String.format("%s successfully added to game %d as %s user", gameInfo.getWhiteUsername(), id, color);
+        }
+        else{
+            message = String.format("%s successfully added to game %d as %s user", gameInfo.getBlackUsername(), id, color);
+        }
         var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
         var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcastToSelf(id, session, messageToSelf);
