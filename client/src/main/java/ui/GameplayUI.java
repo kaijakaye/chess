@@ -18,11 +18,13 @@ public class GameplayUI {
     private final ServerFacade server;
     private State state = State.SIGNEDIN;
     private GameState gameState = GameState.JOINED;
-    private ChessGame.TeamColor color;
+    private final ChessGame.TeamColor color;
+    private final int gameID;
 
-    public GameplayUI(String serverUrl,ChessGame.TeamColor color) throws Exception {
+    public GameplayUI(String serverUrl,ChessGame.TeamColor color, int gameID) throws Exception {
         server = new ServerFacade(serverUrl);
         this.color = color;
+        this.gameID = gameID;
     }
 
     public void run() {
@@ -59,9 +61,9 @@ public class GameplayUI {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                //case "leave" -> leave();
+                case "leave" -> leave();
                 //case "redraw" -> redraw();
-                //case "move" -> makeMove(params);
+                case "move" -> makeMove(params);
                 //case "resign" -> resign();
                 //case "highlight" -> highlightLegalMoves(params);
                 default -> help();
@@ -73,13 +75,37 @@ public class GameplayUI {
 
     public String help() {
         return """
-                create <NAME> - create a new game called NAME
-                list - see the list of all games
-                join <ID> [WHITE|BLACK] - join an existing game
-                observe <ID> - watch a game
-                logout - log out & return to start menu
+                leave - leave the game and return to the last menu
+                redraw - redraw the game board
+                make move <starting position (ex. A1)> <ending position(ex. B2)> - make a move
+                resign - give up
+                highlight <position> - highlight the legal moves for a piece at a given position
                 help - possible commands
                 """;
+    }
+
+    public String leave() throws Exception {
+        gameState = GameState.NOTJOINED;
+        //server.joinGame(null,new JoinGameRequest(color,gameID));
+        //you'll need to use the server daos to join a game as null, it won't happen from the UI
+        //implement something web-sockety here
+        return "You left the game successfully.";
+    }
+
+    public String makeMove(String... params) throws Exception {
+        /*if (params.length == 2) {
+            int gameID;
+            try {
+                gameID = Integer.parseInt(params[0]);
+            } catch (NumberFormatException e) {
+                return "Join via game number, not game name";
+            }
+
+            server.joinGame(null,new JoinGameRequest(color,gameID));*/
+            return "Move successful.";
+        /*}
+        throw new Exception("Invalid input");
+        */
     }
 
     void printGameBoard(ChessGame.TeamColor who){

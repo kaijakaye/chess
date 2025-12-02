@@ -8,11 +8,13 @@ import dataaccess.SQLDataAccess;
 import model.*;
 import io.javalin.*;
 import io.javalin.http.Context;
+import server.websocket.WebSocketHandler;
 import service.*;
 
 public class Server {
 
     private final Javalin server;
+    private final WebSocketHandler webSocketHandler;
     private final UserService userService;
 
     public Server() {
@@ -25,8 +27,9 @@ public class Server {
             System.out.print("failed to load SQL database, so we are defaulting to memory");
         }
 
-
         server = Javalin.create(config -> config.staticFiles.add("web"));
+
+        webSocketHandler = new WebSocketHandler();
 
         // Register your endpoints and exception handlers here.
         //clear

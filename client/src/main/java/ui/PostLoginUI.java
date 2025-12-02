@@ -111,11 +111,11 @@ public class PostLoginUI {
             //checking validity of white or black stuff
             if(Objects.equals(params[1], "white")||Objects.equals(params[1], "WHITE")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.WHITE,gameID);
-                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE);
+                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID);
             }
             else if(Objects.equals(params[1], "black")||Objects.equals(params[1], "BLACK")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.BLACK,gameID);
-                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.BLACK);
+                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.BLACK, gameID);
             }
             else{
                 return "You have to join as white or black.";
@@ -133,7 +133,13 @@ public class PostLoginUI {
     }
 
     public String observeGame(String... params) throws Exception {
-        jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE);
+        int gameID;
+        try {
+            gameID = Integer.parseInt(params[0]);
+        } catch (NumberFormatException e) {
+            return "Join via game number, not game name";
+        }
+        jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID);
         gameState = GameState.JOINED;
         return "Enjoy the show";
     }
