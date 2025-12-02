@@ -35,29 +35,12 @@ public class WebSocketHandler {
         ctx.enableAutomaticPings();
     }
 
-    public void handleMessage(WsMessageContext ctx) {
+    public void handleMessage(WsMessageContext ctx) throws IOException {
+        UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
         try{
-            UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-            switch (command.getCommandType()) {
-                case CONNECT -> connect(command, ctx.session);
-                //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
-                //case LEAVE -> exit(command.visitorName(), ctx.session);
-                //case RESIGN -> exit(command.visitorName(), ctx.session);
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed");
-    }
-
-    private void connect(UserGameCommand command, Session session) throws IOException{
-        try{
+            //UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             var id = command.getGameID();
             var color = command.getColor();
-            connections.add(id, session);
             var gameInfo = userService.getDataAccess().getGame(id);
             var authInfo = userService.getDataAccess().getAuth(command.getAuthToken());
 
@@ -68,31 +51,59 @@ public class WebSocketHandler {
                 throw new DataAccessException("bad authtoken");
             }
 
-            String message;
-            if (color == ChessGame.TeamColor.WHITE) {
-                message = String.format("%s successfully added to game %d as %s player", gameInfo.getWhiteUsername(), id, color);
-            } else if (color == ChessGame.TeamColor.BLACK) {
-                message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
-            } else {
-                message = String.format("%s successfully added to game %d as observer", gameInfo.getBlackUsername(), id);
+            switch (command.getCommandType()) {
+                case CONNECT -> connect(command, ctx.session);
+                //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
+                case LEAVE -> leave(command, ctx.session);
+                //case RESIGN -> exit(command.visitorName(), ctx.session);
             }
-
-            var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
-            var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcastToSelf(id, session, messageToSelf);
-            connections.broadcastToOthers(id, session, messageToWorld);
-        } catch (DataAccessException e) {
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        catch(DataAccessException e){
             var message = "Error";
             var messageToEveryone = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
-            connections.broadcastToSelf(command.getGameID(), session, messageToEveryone);
+            connections.broadcastToSelf(command.getGameID(), ctx.session, messageToEveryone);
         }
-
     }
 
-    private void leave(int id, Session session) throws IOException {
-        var message = String.format("User left game %d", id);
-        var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        //connections.broadcast(id, session, serverMessage);
-        connections.remove(id, session);
+    public void handleClose(WsCloseContext ctx) {
+        System.out.println("Websocket closed");
+    }
+
+    private void connect(UserGameCommand command, Session session) throws IOException, DataAccessException{
+        var id = command.getGameID();
+        var color = command.getColor();
+        connections.add(id, session);
+        var gameInfo = userService.getDataAccess().getGame(id);
+        String message;
+        if (color == ChessGame.TeamColor.WHITE) {
+            message = String.format("%s successfully added to game %d as %s player", gameInfo.getWhiteUsername(), id, color);
+        } else if (color == ChessGame.TeamColor.BLACK) {
+            message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
+        } else {
+            message = String.format("Successfully added to game %d as observer", id);
+        }
+
+        var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
+        var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcastToSelf(id, session, messageToSelf);
+        connections.broadcastToOthers(id, session, messageToWorld);
+    }
+
+    private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
+        var gameInfo = userService.getDataAccess().getGame(command.getGameID());
+        var color = command.getColor();
+        String message;
+        if (color == ChessGame.TeamColor.WHITE) {
+            message = String.format("%s left game %d", gameInfo.getWhiteUsername(), command.getGameID());
+        } else if (color == ChessGame.TeamColor.BLACK) {
+            message = String.format("%s left game %d", gameInfo.getBlackUsername(), command.getGameID());
+        } else {
+            message = String.format("Observer left game %d", command.getGameID());
+        }
+        var serverMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,message);
+        connections.broadcastToOthers(command.getGameID(), session, serverMessage);
+        connections.remove(command.getGameID(), session);
     }
 }
