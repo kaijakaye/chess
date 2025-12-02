@@ -58,7 +58,7 @@ public class WebSocketHandler {
         var message = String.format("New user added to game %d", id);
         var gameInfo = userService.getDataAccess().getGame(id);
         var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
-        var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.LOAD_GAME, message);
+        var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcastToSelf(id, session, messageToSelf);
         connections.broadcastToOthers(id, session, messageToWorld);
     }
