@@ -29,11 +29,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     public void handleMessage(WsMessageContext ctx) {
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-            switch (command.CommandType()) {
-                case CONNECT -> enter(command.getGameID(), ctx.session);
-                case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
-                case LEAVE -> exit(command.visitorName(), ctx.session);
-                case RESIGN -> exit(command.visitorName(), ctx.session);
+            switch (command.getCommandType()) {
+                case CONNECT -> connect(command.getGameID(), ctx.session);
+                //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
+                //case LEAVE -> exit(command.visitorName(), ctx.session);
+                //case RESIGN -> exit(command.visitorName(), ctx.session);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -45,27 +45,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    private void enter(String visitorName, Session session) throws IOException {
+    private void connect(int id, Session session) throws IOException {
         connections.add(session);
-        var message = String.format("%s is in the shop", visitorName);
-        var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.ARRIVAL, message);
+        //var message = String.format("New user added to game %d", id);
+        var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
         connections.broadcast(session, serverMessage);
     }
 
-    private void exit(String visitorName, Session session) throws IOException {
-        var message = String.format("%s left the shop", visitorName);
-        var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.DEPARTURE, message);
+    private void leave(int id, Session session) throws IOException {
+        var message = String.format("User left game %d", id);
+        var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         connections.broadcast(session, serverMessage);
         connections.remove(session);
-    }
-
-    public void makeNoise(String petName, String sound) throws Exception {
-        try {
-            var message = String.format("%s says %s", petName, sound);
-            var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOISE, message);
-            connections.broadcast(null, serverMessage);
-        } catch (Exception ex) {
-            throw new Exception();
-        }
     }
 }

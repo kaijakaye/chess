@@ -84,15 +84,16 @@ public class GameplayUI {
                 """;
     }
 
+    //THIS FUNC AIN'T DONE
     public String leave() throws Exception {
         gameState = GameState.NOTJOINED;
         //server.joinGame(null,new JoinGameRequest(color,gameID));
-        //you'll need to use the server daos to join a game as null, it won't happen from the UI
+        //you'll need to use the server DAOs to join a game as null, it won't happen from the UI
         //implement something web-sockety here
         return "You left the game successfully.";
     }
 
-    public String makeMove(String... params) throws Exception {
+    /*public String makeMove(String... params) throws Exception {
         /*if (params.length == 2) {
             int gameID;
             try {
@@ -101,12 +102,12 @@ public class GameplayUI {
                 return "Join via game number, not game name";
             }
 
-            server.joinGame(null,new JoinGameRequest(color,gameID));*/
+            server.joinGame(null,new JoinGameRequest(color,gameID));
             return "Move successful.";
-        /*}
+        }
         throw new Exception("Invalid input");
-        */
-    }
+
+    }*/
 
     void printGameBoard(ChessGame.TeamColor who){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
