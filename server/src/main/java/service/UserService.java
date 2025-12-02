@@ -135,4 +135,7 @@ public class UserService {
         return UUID.randomUUID().toString();
     }
 
+    public DataAccess getDataAccess() {
+        return dataAccess;
+    }
 }

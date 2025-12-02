@@ -29,7 +29,8 @@ public class Server {
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
-        webSocketHandler = new WebSocketHandler();
+        userService = new UserService(dataAccess);
+        webSocketHandler = new WebSocketHandler(userService);
 
         // Register your endpoints and exception handlers here.
         //clear
@@ -46,7 +47,11 @@ public class Server {
         server.put("game",ctx -> join(ctx));
         //list games
         server.get("game",ctx -> list(ctx));
-        userService = new UserService(dataAccess);
+        server.ws("/ws", ws -> {
+                    ws.onConnect(webSocketHandler::handleConnect);
+                    ws.onMessage(webSocketHandler::handleMessage);
+                    ws.onClose(webSocketHandler::handleClose);
+        });
 
     }
 

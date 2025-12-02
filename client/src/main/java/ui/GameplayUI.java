@@ -63,7 +63,7 @@ public class GameplayUI {
             return switch (cmd) {
                 case "leave" -> leave();
                 //case "redraw" -> redraw();
-                case "move" -> makeMove(params);
+                //case "move" -> makeMove(params);
                 //case "resign" -> resign();
                 //case "highlight" -> highlightLegalMoves(params);
                 default -> help();
