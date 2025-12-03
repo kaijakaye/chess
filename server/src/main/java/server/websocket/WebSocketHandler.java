@@ -40,9 +40,18 @@ public class WebSocketHandler {
         try{
             //UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             var id = command.getGameID();
-            var color = command.getColor();
+            ChessGame.TeamColor color;
             var gameInfo = userService.getDataAccess().getGame(id);
             var authInfo = userService.getDataAccess().getAuth(command.getAuthToken());
+            if(authInfo.username().equals(gameInfo.getWhiteUsername())){
+                color = ChessGame.TeamColor.WHITE;
+            }
+            else if(authInfo.username().equals(gameInfo.getBlackUsername())){
+                color = ChessGame.TeamColor.BLACK;
+            }
+            else{
+                color = null;
+            }
 
             if(gameInfo==null){
                 throw new DataAccessException("not enough info");
@@ -52,9 +61,9 @@ public class WebSocketHandler {
             }
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command, ctx.session);
+                case CONNECT -> connect(command, color, ctx.session);
                 //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
-                case LEAVE -> leave(command, ctx.session);
+                case LEAVE -> leave(command, color, ctx.session);
                 //case RESIGN -> exit(command.visitorName(), ctx.session);
             }
         } catch (IOException ex) {
@@ -71,15 +80,14 @@ public class WebSocketHandler {
         System.out.println("Websocket closed");
     }
 
-    private void connect(UserGameCommand command, Session session) throws IOException, DataAccessException{
+    private void connect(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException{
         var id = command.getGameID();
-        var color = command.getColor();
         connections.add(id, session);
         var gameInfo = userService.getDataAccess().getGame(id);
         String message;
-        if (color == ChessGame.TeamColor.WHITE) {
+        if (ChessGame.TeamColor.WHITE.equals(color)) {
             message = String.format("%s successfully added to game %d as %s player", gameInfo.getWhiteUsername(), id, color);
-        } else if (color == ChessGame.TeamColor.BLACK) {
+        } else if (ChessGame.TeamColor.BLACK.equals(color)) {
             message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
         } else {
             message = String.format("Successfully added to game %d as observer", id);
@@ -91,14 +99,17 @@ public class WebSocketHandler {
         connections.broadcastToOthers(id, session, messageToWorld);
     }
 
-    private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
+    private void leave(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
         var gameInfo = userService.getDataAccess().getGame(command.getGameID());
-        var color = command.getColor();
         String message;
-        if (color == ChessGame.TeamColor.WHITE) {
+        if (ChessGame.TeamColor.WHITE.equals(color)) {
             message = String.format("%s left game %d", gameInfo.getWhiteUsername(), command.getGameID());
-        } else if (color == ChessGame.TeamColor.BLACK) {
+            gameInfo.setWhiteUsername(null);
+            userService.getDataAccess().updateGame(gameInfo);
+        } else if (ChessGame.TeamColor.BLACK.equals(color)) {
             message = String.format("%s left game %d", gameInfo.getBlackUsername(), command.getGameID());
+            gameInfo.setBlackUsername(null);
+            userService.getDataAccess().updateGame(gameInfo);
         } else {
             message = String.format("Observer left game %d", command.getGameID());
         }

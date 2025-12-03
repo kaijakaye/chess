@@ -18,13 +18,10 @@ public class UserGameCommand {
 
     private final Integer gameID;
 
-    private final ChessGame.TeamColor color;
-
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID, ChessGame.TeamColor color) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
-        this.color = color;
 
     }
 
@@ -45,10 +42,6 @@ public class UserGameCommand {
 
     public Integer getGameID() {
         return gameID;
-    }
-
-    public ChessGame.TeamColor getColor() {
-        return color;
     }
 
     @Override
