@@ -62,7 +62,7 @@ public class WebSocketHandler {
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command, color, ctx.session);
-                //case MAKE_MOVE -> exit(command.visitorName(), ctx.session);
+                case MAKE_MOVE -> makeMove(command, color, ctx.session);
                 case LEAVE -> leave(command, color, ctx.session);
                 //case RESIGN -> exit(command.visitorName(), ctx.session);
             }
@@ -93,6 +93,23 @@ public class WebSocketHandler {
             message = String.format("Successfully added to game %d as observer", id);
         }
 
+        var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
+        var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcastToSelf(id, session, messageToSelf);
+        connections.broadcastToOthers(id, session, messageToWorld);
+    }
+
+    private void makeMove(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException{
+        var id = command.getGameID();
+        var gameInfo = userService.getDataAccess().getGame(id);
+        String message;
+        if (ChessGame.TeamColor.WHITE.equals(color)) {
+            message = String.format("%s successfully added to game %d as %s player", gameInfo.getWhiteUsername(), id, color);
+        } else if (ChessGame.TeamColor.BLACK.equals(color)) {
+            message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
+        } else {
+            message = String.format("Successfully added to game %d as observer", id);
+        }
         var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
         var messageToWorld = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcastToSelf(id, session, messageToSelf);
