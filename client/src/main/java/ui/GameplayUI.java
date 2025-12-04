@@ -5,6 +5,10 @@ import model.AuthData;
 import model.GameData;
 import model.JoinGameRequest;
 import model.ListGamesResult;
+import ui.websocket.ServerMessageHandler;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -12,9 +16,10 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static java.awt.Color.*;
 import static ui.EscapeSequences.*;
 
-public class GameplayUI {
+public class GameplayUI implements ServerMessageHandler {
     private final ServerFacade server;
     private State state = State.SIGNEDIN;
     private GameState gameState = GameState.JOINED;
@@ -53,6 +58,24 @@ public class GameplayUI {
 
     private void printPrompt() {
         System.out.print("\n" + ">>> ");
+    }
+
+    public void notifyLoadGame(LoadGameMessage msg) {
+        ChessGame game = msg.getGame();
+        //printGameBoard();
+        printPrompt();
+    }
+
+    @Override
+    public void notifyError(ErrorMessage msg) {
+        System.out.println(RED + msg.getErrorMessage());
+        printPrompt();
+    }
+
+    @Override
+    public void notifyNotification(NotificationMessage msg) {
+        System.out.println(BLUE + msg.getMessage());
+        printPrompt();
     }
 
     public String eval(String input) {
