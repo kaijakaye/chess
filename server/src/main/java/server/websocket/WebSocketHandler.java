@@ -50,7 +50,14 @@ public class WebSocketHandler {
             ChessGame.TeamColor color;
             var gameInfo = userService.getDataAccess().getGame(id);
             var authInfo = userService.getDataAccess().getAuth(command.getAuthToken());
-            if(authInfo.username().equals(gameInfo.getWhiteUsername())){
+
+            if(authInfo==null){
+                throw new DataAccessException("bad authtoken");
+            }
+            else if(gameInfo==null){
+                throw new DataAccessException("not enough info");
+            }
+            else if(authInfo.username().equals(gameInfo.getWhiteUsername())){
                 color = ChessGame.TeamColor.WHITE;
             }
             else if(authInfo.username().equals(gameInfo.getBlackUsername())){
@@ -58,13 +65,6 @@ public class WebSocketHandler {
             }
             else{
                 color = null;
-            }
-
-            if(gameInfo==null){
-                throw new DataAccessException("not enough info");
-            }
-            if(authInfo==null){
-                throw new DataAccessException("bad authtoken");
             }
 
             switch (command.getCommandType()) {
