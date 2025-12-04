@@ -115,21 +115,20 @@ public class WebSocketHandler {
             ChessMove move = command.getMove();
             ChessPosition start = move.getStartPosition();
             ChessPosition end = move.getEndPosition();
-            game.makeMove(move);
-
-            gameInfo.setGame(game);
-            userService.getDataAccess().updateGame(gameInfo);
 
             //prep message string
             String message;
             String workingUsername = "";
-            if (ChessGame.TeamColor.WHITE.equals(color)) {
+            if (ChessGame.TeamColor.WHITE.equals(color) && game.getTeamTurn().equals(color)) {
                 workingUsername = gameInfo.getWhiteUsername();
-            } else if (ChessGame.TeamColor.BLACK.equals(color)) {
+            } else if (ChessGame.TeamColor.BLACK.equals(color) && game.getTeamTurn().equals(color)) {
                 workingUsername = gameInfo.getBlackUsername();
             } else {
-                workingUsername = "observer";
+                throw new InvalidMoveException();
             }
+            game.makeMove(move);
+            gameInfo.setGame(game);
+            userService.getDataAccess().updateGame(gameInfo);
             message = String.format("%s moved from %s to %s", workingUsername, start, end);
 
             //send updated game and message about move to everyone involved
