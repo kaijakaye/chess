@@ -29,11 +29,9 @@ import static websocket.commands.UserGameCommand.CommandType.*;
 public class WebSocketHandler {
     private final ConnectionManager connections = new ConnectionManager();
     private final UserService userService;
-    private boolean isGameOver;
 
     public WebSocketHandler(UserService userService) {
         this.userService = userService;
-        isGameOver = false;
     }
 
     public void handleConnect(WsConnectContext ctx) {
@@ -114,7 +112,7 @@ public class WebSocketHandler {
         var game = gameInfo.getGame();
 
         try{
-            if(isGameOver){
+            if(game.isGameOver()){
                 throw new InvalidMoveException();
             }
 
@@ -227,15 +225,16 @@ public class WebSocketHandler {
         //game is updated in the database.
         try{
             //if someone's already resigned
-            if(isGameOver){
-                throw new InvalidMoveException();
-            }
-
-            isGameOver = true;
             var id = command.getGameID();
             var gameInfo = userService.getDataAccess().getGame(id);
             var game = gameInfo.getGame();
 
+            if(game.isGameOver()){
+                throw new InvalidMoveException();
+            }
+            else{
+                game.setGameOver(true);
+            }
             String message;
             String workingUsername = "";
             if (ChessGame.TeamColor.WHITE.equals(color)) {
