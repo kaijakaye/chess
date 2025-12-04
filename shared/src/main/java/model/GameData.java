@@ -46,6 +46,10 @@ public class GameData {
         this.blackUsername = blackUsername;
     }
 
+    public void setGame(ChessGame game) {
+        this.game = game;
+    }
+
     public int getGameID() {
         return gameID;
     }
