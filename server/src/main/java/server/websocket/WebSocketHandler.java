@@ -29,9 +29,11 @@ import static websocket.commands.UserGameCommand.CommandType.*;
 public class WebSocketHandler {
     private final ConnectionManager connections = new ConnectionManager();
     private final UserService userService;
+    private boolean isGameOver;
 
     public WebSocketHandler(UserService userService) {
         this.userService = userService;
+        isGameOver = false;
     }
 
     public void handleConnect(WsConnectContext ctx) {
@@ -71,7 +73,7 @@ public class WebSocketHandler {
                 case CONNECT -> connect(command, color, ctx.session);
                 case MAKE_MOVE -> makeMove(mmComm, color, ctx.session);
                 case LEAVE -> leave(command, color, ctx.session);
-                //case RESIGN -> exit(command.visitorName(), ctx.session);
+                case RESIGN -> resign(command, color, ctx.session);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -112,6 +114,10 @@ public class WebSocketHandler {
         var game = gameInfo.getGame();
 
         try{
+            if(isGameOver){
+                throw new InvalidMoveException();
+            }
+
             ChessMove move = command.getMove();
             ChessPosition start = move.getStartPosition();
             ChessPosition end = move.getEndPosition();
@@ -214,5 +220,45 @@ public class WebSocketHandler {
         var serverMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,message);
         connections.broadcastToOthers(command.getGameID(), session, serverMessage);
         connections.remove(command.getGameID(), session);
+    }
+
+    private void resign(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
+        //Server marks the game as over (no more moves can be made)
+        //game is updated in the database.
+        try{
+            //if someone's already resigned
+            if(isGameOver){
+                throw new InvalidMoveException();
+            }
+
+            isGameOver = true;
+            var id = command.getGameID();
+            var gameInfo = userService.getDataAccess().getGame(id);
+            var game = gameInfo.getGame();
+
+            String message;
+            String workingUsername = "";
+            if (ChessGame.TeamColor.WHITE.equals(color)) {
+                workingUsername = gameInfo.getWhiteUsername();
+            } else if (ChessGame.TeamColor.BLACK.equals(color)) {
+                workingUsername = gameInfo.getBlackUsername();
+            } else {
+                throw new InvalidMoveException();
+            }
+
+            game.setGameOver(true);
+            gameInfo.setGame(game);
+            userService.getDataAccess().updateGame(gameInfo);
+            //Server sends a Notification message to all clients in that game informing them that the root client resigned.
+
+            message = String.format("%s resigned from the game. No more playing.", workingUsername);
+            var serverMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcastToAll(command.getGameID(), session, serverMessage);
+        } catch (InvalidMoveException e) {
+            var message = "Error";
+            var messageToSelf = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            connections.broadcastToSelf(command.getGameID(), session, messageToSelf);
+        }
+        //This applies to both players and observers.
     }
 }

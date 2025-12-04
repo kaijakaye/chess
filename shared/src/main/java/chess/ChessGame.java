@@ -16,9 +16,11 @@ public class ChessGame {
 
     private TeamColor whoseTurn;
     private ChessBoard board;
+    private boolean isGameOver;
 
     public ChessGame() {
         whoseTurn = TeamColor.WHITE;
+        isGameOver = false;
         board = new ChessBoard();
         board.resetBoard();
     }
@@ -45,6 +47,14 @@ public class ChessGame {
     public enum TeamColor {
         WHITE,
         BLACK
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        isGameOver = gameOver;
     }
 
     /**
