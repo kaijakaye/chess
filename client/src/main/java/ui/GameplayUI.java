@@ -71,7 +71,7 @@ public class GameplayUI implements ServerMessageHandler {
                 case "leave" -> leave();
                 case "redraw" -> redraw(game.getBoard(),color);
                 //case "move" -> makeMove(params);
-                //case "resign" -> resign();
+                case "resign" -> resign();
                 //case "highlight" -> highlightLegalMoves(params);
                 default -> help();
             };
@@ -98,9 +98,41 @@ public class GameplayUI implements ServerMessageHandler {
     }
 
     public String resign() throws Exception {
-        gameState = GameState.NOTJOINED;
-        ws.leave(authToken, gameID);
-        return "You left the game successfully.";
+        System.out.print("Are you sure you want to resign? ('y' for yes, 'n' for no)");
+        Scanner scanner = new Scanner(System.in);
+        boolean result;
+        printPrompt();
+        String line = scanner.nextLine();
+        String[] tokens = line.toLowerCase().split(" ");
+        String cmd = (tokens.length > 0) ? tokens[0] : "no";
+        try {
+            result = evalResign(line);
+            if(result){
+                ws.resign(authToken, gameID);
+                return "You resigned from the game.";
+            }
+            else{
+                return "You can stay in the game then.";
+            }
+        } catch (Throwable e) {
+            var msg = e.toString();
+            System.out.print(msg);
+        }
+        return "Resign failed.";
+    }
+
+    public boolean evalResign(String input) {
+        try {
+            String[] tokens = input.toLowerCase().split(" ");
+            String cmd = (tokens.length > 0) ? tokens[0] : "no";
+            return switch (cmd) {
+                case "y" -> true;
+                case "yes" -> true;
+                default -> false;
+            };
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     public String redraw(ChessBoard board, ChessGame.TeamColor who){
