@@ -24,7 +24,7 @@ public class GameplayUI implements ServerMessageHandler {
     private GameState gameState = GameState.JOINED;
     private final ChessGame.TeamColor color;
     private final int gameID;
-    private ChessGame game;
+    private ChessGame game = new ChessGame();
     private String authToken;
 
     public GameplayUI(String serverUrl, ChessGame.TeamColor color, int gameID, String authToken) throws Exception {
@@ -36,6 +36,7 @@ public class GameplayUI implements ServerMessageHandler {
 
     public void run() {
         System.out.println("\n\nFinally, a real game!");;
+        redraw(game.getBoard(),color);
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -68,7 +69,7 @@ public class GameplayUI implements ServerMessageHandler {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "leave" -> leave();
-                //case "redraw" -> redraw();
+                case "redraw" -> redraw(game.getBoard(),color);
                 //case "move" -> makeMove(params);
                 //case "resign" -> resign();
                 //case "highlight" -> highlightLegalMoves(params);
@@ -96,6 +97,12 @@ public class GameplayUI implements ServerMessageHandler {
         return "You left the game successfully.";
     }
 
+    public String resign() throws Exception {
+        gameState = GameState.NOTJOINED;
+        ws.leave(authToken, gameID);
+        return "You left the game successfully.";
+    }
+
     /*public String makeMove(String... params) throws Exception {
         /*if (params.length == 2) {
             int gameID;
@@ -112,27 +119,27 @@ public class GameplayUI implements ServerMessageHandler {
 
     }*/
 
-    void redraw(ChessBoard board, ChessGame.TeamColor who){
+    public String redraw(ChessBoard board, ChessGame.TeamColor who){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         String[] indices;
         if(who==ChessGame.TeamColor.WHITE){
-            indices = new String[]{"8","7","6","5","4","3","2","1"};
+            indices = new String[]{" 8 "," 7 "," 6 "," 5 "," 4 "," 3 "," 2 "," 1 "};
         }
         else{
-            indices = new String[]{"1","2","3","4","5","6","7","8"};
+            indices = new String[]{" 1 "," 2 "," 3 "," 4 "," 5 "," 6 "," 7 "," 8 "};
         }
 
         //print top row indices
         printHorizontalIndex(out,who);
         //for each row, start with the vertical crap
         for (int row = 1; row <= 8; row++) {
-            out.print(indices[row]);
+            out.print(indices[row - 1]);
             for (int col = 1; col <= 8; col++) {
                 String bgColor = "";
                 String txtColor = "";
                 //light grey
-                if((row%2==1 && col%2==1) || (row%2==0 && (col&2)==0)){
+                if((row%2==1 && col%2==1) || (row%2==0 && col%2==0)){
                     bgColor = SET_BG_COLOR_LIGHT_GREY;
                     txtColor = SET_TEXT_COLOR_LIGHT_GREY;
                 }
@@ -143,9 +150,13 @@ public class GameplayUI implements ServerMessageHandler {
                 }
                 printSingleSquare(out, board.getPiece(new ChessPosition(row,col)),bgColor, txtColor, who);
             }
-            out.print(indices[row] + "\n");
+            out.print(RESET_BG_COLOR);
+            out.print(RESET_TEXT_COLOR);
+            out.print(indices[row - 1] + "\n");
         }
         printHorizontalIndex(out,who);
+
+        return "There's your board.";
     }
 
     public void printSingleSquare(PrintStream out, ChessPiece piece, String bgColor, String txtColor, ChessGame.TeamColor who){
@@ -154,9 +165,18 @@ public class GameplayUI implements ServerMessageHandler {
         out.print(" ");
 
         String pieceColor = "";
-        if(!(piece ==null)){
-            pieceColor = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? SET_TEXT_COLOR_WHITE : SET_TEXT_COLOR_BLACK;
+        if(!(piece==null)){
+            if(piece.getTeamColor()==ChessGame.TeamColor.WHITE){
+                pieceColor = SET_TEXT_COLOR_WHITE;
+            }
+            else{
+                pieceColor = SET_TEXT_COLOR_BLACK;
+            }
+            setColor(out,bgColor,pieceColor);
             out.print(piece);
+        }
+        else{
+            out.print(" ");
         }
 
         setColor(out,bgColor,txtColor);
@@ -175,7 +195,7 @@ public class GameplayUI implements ServerMessageHandler {
         out.print("   ");
 
         for(int sqCounter = 0; sqCounter < 8; sqCounter++){
-            out.print("  " + indices[sqCounter] + "  ");
+            out.print(" " + indices[sqCounter] + " ");
         }
         out.print("\n");
     }
