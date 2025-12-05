@@ -1,10 +1,10 @@
 package ui;
 
+import chess.ChessBoard;
 import chess.ChessGame;
-import model.AuthData;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.GameData;
-import model.JoinGameRequest;
-import model.ListGamesResult;
 import ui.websocket.ServerMessageHandler;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -33,8 +33,7 @@ public class GameplayUI implements ServerMessageHandler {
     }
 
     public void run() {
-        System.out.println("\n\nFinally, a real game!");
-        printGameBoard(color);
+        System.out.println("\n\nFinally, a real game!");;
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -62,7 +61,7 @@ public class GameplayUI implements ServerMessageHandler {
 
     public void notifyLoadGame(LoadGameMessage msg) {
         ChessGame game = msg.getGame();
-        //printGameBoard();
+        printGameBoard(game.getBoard(),color);
         printPrompt();
     }
 
@@ -132,9 +131,55 @@ public class GameplayUI implements ServerMessageHandler {
 
     }*/
 
-    void printGameBoard(ChessGame.TeamColor who){
+    void printGameBoard(ChessBoard board, ChessGame.TeamColor who){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        drawBoard(out, who);
+
+        String[] indices;
+        if(who==ChessGame.TeamColor.WHITE){
+            indices = new String[]{"8","7","6","5","4","3","2","1"};
+        }
+        else{
+            indices = new String[]{"1","2","3","4","5","6","7","8"};
+        }
+
+        //print top row indices
+        printHorizontalIndex(out,who);
+        //for each row, start with the vertical crap
+        for (int row = 1; row <= 8; row++) {
+            out.print(indices[row]);
+            for (int col = 1; col <= 8; col++) {
+                String bgColor = "";
+                String txtColor = "";
+                //light grey
+                if((row%2==1 && col%2==1) || (row%2==0 && (col&2)==0)){
+                    bgColor = SET_BG_COLOR_LIGHT_GREY;
+                    txtColor = SET_TEXT_COLOR_LIGHT_GREY;
+                }
+                //dark grey
+                else{
+                    bgColor = SET_BG_COLOR_DARK_GREY;
+                    txtColor = SET_TEXT_COLOR_DARK_GREY;
+                }
+                printSingleSquare(out, board.getPiece(new ChessPosition(row,col)),bgColor, txtColor, who);
+            }
+            out.print(indices[row] + "\n");
+        }
+        printHorizontalIndex(out,who);
+    }
+
+    public void printSingleSquare(PrintStream out, ChessPiece piece, String bgColor, String txtColor, ChessGame.TeamColor who){
+
+        setColor(out,bgColor,txtColor);
+        out.print(" ");
+
+        String pieceColor = "";
+        if(!(piece ==null)){
+            pieceColor = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? SET_TEXT_COLOR_WHITE : SET_TEXT_COLOR_BLACK;
+            out.print(piece);
+        }
+
+        setColor(out,bgColor,txtColor);
+        out.print(" ");
     }
 
     private static void drawBoard(PrintStream out, ChessGame.TeamColor who) {

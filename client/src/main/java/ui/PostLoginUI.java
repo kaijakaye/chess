@@ -122,6 +122,7 @@ public class PostLoginUI {
             }
             try{
                 server.joinGame(auth,gameReq);
+
                 gameState = GameState.JOINED;
                 return String.format("Successfully joined game %d as %s player.", gameID, params[1]);
             }
