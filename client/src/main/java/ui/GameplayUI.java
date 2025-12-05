@@ -59,6 +59,7 @@ public class GameplayUI implements ServerMessageHandler {
         System.out.print("\n" + ">>> ");
     }
 
+    @Override
     public void notifyLoadGame(LoadGameMessage msg) {
         ChessGame game = msg.getGame();
         printGameBoard(game.getBoard(),color);
