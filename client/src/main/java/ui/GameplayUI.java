@@ -4,8 +4,8 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import model.GameData;
 import ui.websocket.ServerMessageHandler;
+import ui.websocket.WebSocketFacade;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -13,23 +13,25 @@ import websocket.messages.NotificationMessage;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Scanner;
 
 import static java.awt.Color.*;
 import static ui.EscapeSequences.*;
 
 public class GameplayUI implements ServerMessageHandler {
-    private final ServerFacade server;
+    private final WebSocketFacade ws;
     private State state = State.SIGNEDIN;
     private GameState gameState = GameState.JOINED;
     private final ChessGame.TeamColor color;
     private final int gameID;
+    private ChessGame game;
+    private String authToken;
 
-    public GameplayUI(String serverUrl,ChessGame.TeamColor color, int gameID) throws Exception {
-        server = new ServerFacade(serverUrl);
+    public GameplayUI(String serverUrl, ChessGame.TeamColor color, int gameID, String authToken) throws Exception {
+        ws = new WebSocketFacade(serverUrl, this);
         this.color = color;
         this.gameID = gameID;
+        this.authToken = authToken;
     }
 
     public void run() {
@@ -57,25 +59,6 @@ public class GameplayUI implements ServerMessageHandler {
 
     private void printPrompt() {
         System.out.print("\n" + ">>> ");
-    }
-
-    @Override
-    public void notifyLoadGame(LoadGameMessage msg) {
-        ChessGame game = msg.getGame();
-        printGameBoard(game.getBoard(),color);
-        printPrompt();
-    }
-
-    @Override
-    public void notifyError(ErrorMessage msg) {
-        System.out.println(RED + msg.getErrorMessage());
-        printPrompt();
-    }
-
-    @Override
-    public void notifyNotification(NotificationMessage msg) {
-        System.out.println(BLUE + msg.getMessage());
-        printPrompt();
     }
 
     public String eval(String input) {
@@ -107,12 +90,9 @@ public class GameplayUI implements ServerMessageHandler {
                 """;
     }
 
-    //THIS FUNC AIN'T DONE
     public String leave() throws Exception {
         gameState = GameState.NOTJOINED;
-        //server.joinGame(null,new JoinGameRequest(color,gameID));
-        //you'll need to use the server DAOs to join a game as null, it won't happen from the UI
-        //implement something web-sockety here
+        ws.leave(authToken, gameID);
         return "You left the game successfully.";
     }
 
@@ -132,7 +112,7 @@ public class GameplayUI implements ServerMessageHandler {
 
     }*/
 
-    void printGameBoard(ChessBoard board, ChessGame.TeamColor who){
+    void redraw(ChessBoard board, ChessGame.TeamColor who){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         String[] indices;
@@ -183,7 +163,43 @@ public class GameplayUI implements ServerMessageHandler {
         out.print(" ");
     }
 
-    private static void drawBoard(PrintStream out, ChessGame.TeamColor who) {
+    private static void printHorizontalIndex(PrintStream out, ChessGame.TeamColor who) {
+        String[] indices;
+        if(who==ChessGame.TeamColor.WHITE){
+            indices = new String[]{"a","b","c","d","e","f","g","h"};
+        }
+        else{
+            indices = new String[]{"h","g","f","e","d","c","b","a"};
+        }
+
+        out.print("   ");
+
+        for(int sqCounter = 0; sqCounter < 8; sqCounter++){
+            out.print("  " + indices[sqCounter] + "  ");
+        }
+        out.print("\n");
+    }
+
+    @Override
+    public void notifyLoadGame(LoadGameMessage msg) {
+        game = msg.getGame();
+        redraw(game.getBoard(),color);
+        printPrompt();
+    }
+
+    @Override
+    public void notifyError(ErrorMessage msg) {
+        System.out.println(RED + msg.getErrorMessage());
+        printPrompt();
+    }
+
+    @Override
+    public void notifyNotification(NotificationMessage msg) {
+        System.out.println(BLUE + msg.getMessage());
+        printPrompt();
+    }
+
+    /*private static void drawBoard(PrintStream out, ChessGame.TeamColor who) {
         boolean q1st;
         if(who== ChessGame.TeamColor.WHITE){
             q1st = true;
@@ -226,23 +242,6 @@ public class GameplayUI implements ServerMessageHandler {
         drawLoadedRowOfSquares(out,SET_BG_COLOR_DARK_GREY,SET_TEXT_COLOR_DARK_GREY,SET_BG_COLOR_LIGHT_GREY,SET_TEXT_COLOR_LIGHT_GREY,who,q1st,false);
         out.print(indices[7] + "\n");
         printHorizontalIndex(out,who);
-    }
-
-    private static void printHorizontalIndex(PrintStream out, ChessGame.TeamColor who) {
-        String[] indices;
-        if(who==ChessGame.TeamColor.WHITE){
-            indices = new String[]{"a","b","c","d","e","f","g","h"};
-        }
-        else{
-            indices = new String[]{"h","g","f","e","d","c","b","a"};
-        }
-
-        out.print("   ");
-
-        for(int sqCounter = 0; sqCounter < 8; sqCounter++){
-            out.print("  " + indices[sqCounter] + "  ");
-        }
-        out.print("\n");
     }
 
     private static void drawLoadedRowOfSquares(PrintStream out,
@@ -356,7 +355,7 @@ public class GameplayUI implements ServerMessageHandler {
         }
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
-    }
+    }*/
 
     private static void setColor(PrintStream out, String bg, String txt) {
         out.print(bg);

@@ -38,6 +38,7 @@ public class PostLoginUI {
             if(gameState==GameState.JOINED){
                 jumpToGame.run();
             }
+            gameState = GameState.NOTJOINED;
             printPrompt();
             String line = scanner.nextLine();
 
@@ -111,11 +112,11 @@ public class PostLoginUI {
             //checking validity of white or black stuff
             if(Objects.equals(params[1], "white")||Objects.equals(params[1], "WHITE")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.WHITE,gameID);
-                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID);
+                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID, auth.authToken());
             }
             else if(Objects.equals(params[1], "black")||Objects.equals(params[1], "BLACK")){
                 gameReq = new JoinGameRequest(ChessGame.TeamColor.BLACK,gameID);
-                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.BLACK, gameID);
+                jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.BLACK, gameID,auth.authToken());
             }
             else{
                 return "You have to join as white or black.";
@@ -140,7 +141,7 @@ public class PostLoginUI {
         } catch (NumberFormatException e) {
             return "Join via game number, not game name";
         }
-        jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID);
+        jumpToGame = new GameplayUI(serverUrl, ChessGame.TeamColor.WHITE, gameID, auth.authToken());
         gameState = GameState.JOINED;
         return "Enjoy the show";
     }
