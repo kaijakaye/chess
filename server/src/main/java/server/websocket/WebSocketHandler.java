@@ -173,34 +173,6 @@ public class WebSocketHandler {
         }
     }
 
-    /*public static ChessMove parseUserMove(String input) {
-        String[] parts = input.trim().split("\\s+"); // splits on spaces
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Input must be like: e2 e4");
-        }
-
-        ChessPosition start = parsePosition(parts[0]);
-        ChessPosition end = parsePosition(parts[1]);
-
-        return new ChessMove(start, end, null);
-    }
-
-    private static ChessPosition parsePosition(String pos) {
-        if (pos.length() != 2) {
-            throw new IllegalArgumentException("Invalid square: " + pos);
-        }
-
-        char file = pos.charAt(0);
-        char rank = pos.charAt(1);
-
-        int col = file - 'a';
-        int row = Character.getNumericValue(rank) - 1;
-
-        return new ChessPosition(row, col);
-    }*/
-
-
-
     private void leave(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
         var gameInfo = userService.getDataAccess().getGame(command.getGameID());
         String message;

@@ -1,9 +1,7 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+import model.JoinGameRequest;
 import ui.websocket.ServerMessageHandler;
 import ui.websocket.WebSocketFacade;
 import websocket.messages.ErrorMessage;
@@ -13,6 +11,7 @@ import websocket.messages.NotificationMessage;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 import static java.awt.Color.*;
@@ -70,7 +69,7 @@ public class GameplayUI implements ServerMessageHandler {
             return switch (cmd) {
                 case "leave" -> leave();
                 case "redraw" -> redraw(game.getBoard(),color);
-                //case "move" -> makeMove(params);
+                case "move" -> makeMove(params);
                 case "resign" -> resign();
                 //case "highlight" -> highlightLegalMoves(params);
                 default -> help();
@@ -135,7 +134,46 @@ public class GameplayUI implements ServerMessageHandler {
         }
     }
 
-    public String redraw(ChessBoard board, ChessGame.TeamColor who){
+    public String makeMove(String... params) throws Exception {
+        if (params.length == 2) {
+            try{
+                ChessMove moveToMake = parseUserMove(params);
+                ws.makeMove(authToken, gameID, moveToMake);
+                return "Good move.";
+            }
+            catch (Exception e) {
+                return "Move unsuccessful.";
+            }
+        }
+        throw new Exception("Invalid input");
+    }
+
+    public static ChessMove parseUserMove(String[] parts) {
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Input must be like: e2 e4");
+        }
+
+        ChessPosition start = parsePosition(parts[0]);
+        ChessPosition end = parsePosition(parts[1]);
+
+        return new ChessMove(start, end, null);
+    }
+
+    private static ChessPosition parsePosition(String pos) {
+        if (pos.length() != 2) {
+            throw new IllegalArgumentException("Invalid square: " + pos);
+        }
+
+        char file = pos.charAt(0);
+        char rank = pos.charAt(1);
+
+        int col = file; //originally - 'a'
+        int row = Character.getNumericValue(rank); //originally - 1
+
+        return new ChessPosition(row, col);
+    }
+
+    public String redraw(ChessBoard board, ChessGame.TeamColor who) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         String[] indices;
@@ -146,31 +184,50 @@ public class GameplayUI implements ServerMessageHandler {
             indices = new String[]{" 1 "," 2 "," 3 "," 4 "," 5 "," 6 "," 7 "," 8 "};
         }
 
-        //print top row indices
-        printHorizontalIndex(out,who);
-        //for each row, start with the vertical crap
-        for (int row = 1; row <= 8; row++) {
-            out.print(indices[row - 1]);
-            for (int col = 1; col <= 8; col++) {
-                String bgColor = "";
-                String txtColor = "";
-                //light grey
-                if((row%2==1 && col%2==1) || (row%2==0 && col%2==0)){
-                    bgColor = SET_BG_COLOR_LIGHT_GREY;
-                    txtColor = SET_TEXT_COLOR_LIGHT_GREY;
-                }
-                //dark grey
-                else{
-                    bgColor = SET_BG_COLOR_DARK_GREY;
-                    txtColor = SET_TEXT_COLOR_DARK_GREY;
-                }
-                printSingleSquare(out, board.getPiece(new ChessPosition(row,col)),bgColor, txtColor, who);
+        // Determine print orientation
+        int startRow = (who == ChessGame.TeamColor.WHITE) ? 8 : 1;
+        int endRow   = (who == ChessGame.TeamColor.WHITE) ? 1 : 8;
+        int rowStep  = (who == ChessGame.TeamColor.WHITE) ? -1 : 1;
+
+        int startCol = (who == ChessGame.TeamColor.WHITE) ? 1 : 8;
+        int endCol   = (who == ChessGame.TeamColor.WHITE) ? 8 : 1;
+        int colStep  = (who == ChessGame.TeamColor.WHITE) ? 1 : -1;
+
+        // Print top horizontal index
+        printHorizontalIndex(out, who);
+
+        int printRow = 0;
+        for (int gameRow = startRow; gameRow != endRow + rowStep; gameRow += rowStep) {
+
+            // vertical index label
+            out.print(indices[printRow]);
+
+            int printCol = 0;
+            for (int gameCol = startCol; gameCol != endCol + colStep; gameCol += colStep) {
+
+                // Light/dark squares must be based on printed (not game) coords
+                boolean lightSquare = ((printRow + printCol) % 2 == 0);
+
+                String bgColor  = lightSquare ? SET_BG_COLOR_LIGHT_GREY : SET_BG_COLOR_DARK_GREY;
+                String txtColor = lightSquare ? SET_TEXT_COLOR_LIGHT_GREY : SET_TEXT_COLOR_DARK_GREY;
+
+                ChessPiece piece = board.getPiece(new ChessPosition(gameRow, gameCol));
+                printSingleSquare(out, piece, bgColor, txtColor, who);
+                printCol++;
             }
+
+            // reset formatting
             out.print(RESET_BG_COLOR);
             out.print(RESET_TEXT_COLOR);
-            out.print(indices[row - 1] + "\n");
+
+            // right-side vertical index
+            out.print(indices[printRow] + "\n");
+
+            printRow++;
         }
-        printHorizontalIndex(out,who);
+
+        // bottom horizontal index
+        printHorizontalIndex(out, who);
 
         return "There's your board.";
     }
