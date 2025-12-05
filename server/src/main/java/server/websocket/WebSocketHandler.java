@@ -167,9 +167,12 @@ public class WebSocketHandler {
 
         }
         catch(InvalidMoveException e){
+            System.out.println(e.getMessage());
             var message = "Error";
             var messageToSelf = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
             connections.broadcastToSelf(command.getGameID(), session, messageToSelf);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
     }
 

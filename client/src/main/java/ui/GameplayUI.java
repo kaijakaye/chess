@@ -34,7 +34,8 @@ public class GameplayUI implements ServerMessageHandler {
     }
 
     public void run() {
-        System.out.println("\n\nFinally, a real game!");;
+        System.out.println("\n\nFinally, a real game!");
+        connect();
         redraw(game.getBoard(),color);
         System.out.print(help());
 
@@ -88,6 +89,15 @@ public class GameplayUI implements ServerMessageHandler {
                 highlight <position> - highlight the legal moves for a piece at a given position
                 help - possible commands
                 """;
+    }
+
+    public void connect() {
+        try {
+            ws.connect(authToken, gameID);
+        } catch (Throwable e) {
+            var msg = e.toString();
+            System.out.print(msg);
+        }
     }
 
     public String leave() throws Exception {
@@ -167,8 +177,8 @@ public class GameplayUI implements ServerMessageHandler {
         char file = pos.charAt(0);
         char rank = pos.charAt(1);
 
-        int col = file; //originally - 'a'
-        int row = Character.getNumericValue(rank); //originally - 1
+        int col = file - 'a';
+        int row = Character.getNumericValue(rank) - 1;
 
         return new ChessPosition(row, col);
     }
@@ -282,13 +292,13 @@ public class GameplayUI implements ServerMessageHandler {
 
     @Override
     public void notifyError(ErrorMessage msg) {
-        System.out.println(RED + msg.getErrorMessage());
+        System.out.println(msg.getErrorMessage());
         printPrompt();
     }
 
     @Override
     public void notifyNotification(NotificationMessage msg) {
-        System.out.println(BLUE + msg.getMessage());
+        System.out.println(msg.getMessage());
         printPrompt();
     }
 

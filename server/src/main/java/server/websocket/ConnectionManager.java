@@ -58,6 +58,7 @@ public class ConnectionManager {
         }
         String msg = new Gson().toJson(message);
         session.getRemote().sendString(msg);
+        System.out.print(message.getServerMessageType());
     }
 
     public void broadcastToOthers(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
@@ -74,6 +75,7 @@ public class ConnectionManager {
                 s.getRemote().sendString(msg);
             }
         }
+        System.out.print(message.getServerMessageType());
     }
 
     public void broadcastToAll(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
@@ -88,5 +90,6 @@ public class ConnectionManager {
         for (Session s : sessions) {
             s.getRemote().sendString(msg);
         }
+        System.out.print(message.getServerMessageType());
     }
 }
