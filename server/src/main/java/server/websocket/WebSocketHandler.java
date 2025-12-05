@@ -69,7 +69,15 @@ public class WebSocketHandler {
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command, color, ctx.session);
-                case MAKE_MOVE -> makeMove(mmComm, color, ctx.session);
+                //case MAKE_MOVE -> makeMove(mmComm, color, ctx.session);
+                case MAKE_MOVE -> {
+                    if (mmComm == null) {
+                        var err = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Malformed MAKE_MOVE command");
+                        connections.broadcastToSelf(command.getGameID(), ctx.session, err);
+                        return;
+                    }
+                    makeMove(mmComm, color, ctx.session);
+                }
                 case LEAVE -> leave(command, color, ctx.session);
                 case RESIGN -> resign(command, color, ctx.session);
             }

@@ -36,7 +36,6 @@ public class GameplayUI implements ServerMessageHandler {
     public void run() {
         System.out.println("\n\nFinally, a real game!");
         connect();
-        redraw(game.getBoard(),color);
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -84,7 +83,7 @@ public class GameplayUI implements ServerMessageHandler {
         return """
                 leave - leave the game and return to the last menu
                 redraw - redraw the game board
-                make move <starting position (ex. A1)> <ending position(ex. B2)> - make a move
+                move <starting position (ex. A1)> <ending position(ex. B2)> - make a move
                 resign - give up
                 highlight <position> - highlight the legal moves for a piece at a given position
                 help - possible commands
@@ -177,8 +176,8 @@ public class GameplayUI implements ServerMessageHandler {
         char file = pos.charAt(0);
         char rank = pos.charAt(1);
 
-        int col = file - 'a';
-        int row = Character.getNumericValue(rank) - 1;
+        int col = (file - 'a') + 1;
+        int row = Character.getNumericValue(rank);
 
         return new ChessPosition(row, col);
     }
