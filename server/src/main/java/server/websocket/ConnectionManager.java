@@ -37,7 +37,9 @@ public class ConnectionManager {
 
     public void preBroadcast(int gameID){
         Collection<Session> sessions = connections.get(gameID);
-        if (sessions == null) return;
+        if (sessions == null) {
+            return;
+        }
 
         for(Session s : sessions){
             if(!s.isOpen()){
@@ -51,7 +53,9 @@ public class ConnectionManager {
 
     public void broadcastToSelf(Integer gameID, Session session, ServerMessage message) throws IOException {
         preBroadcast(gameID);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
         String msg = new Gson().toJson(message);
         session.getRemote().sendString(msg);
     }
@@ -59,7 +63,9 @@ public class ConnectionManager {
     public void broadcastToOthers(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
         preBroadcast(gameID);
         Collection<Session> sessions = connections.get(gameID);
-        if (sessions == null) return;
+        if (sessions == null) {
+            return;
+        }
 
         String msg = new Gson().toJson(message);
 
@@ -73,7 +79,9 @@ public class ConnectionManager {
     public void broadcastToAll(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
         preBroadcast(gameID);
         Collection<Session> sessions = connections.get(gameID);
-        if (sessions == null) return;
+        if (sessions == null) {
+            return;
+        }
 
         String msg = new Gson().toJson(message);
 
