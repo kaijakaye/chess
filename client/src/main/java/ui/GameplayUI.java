@@ -10,9 +10,7 @@ import websocket.messages.NotificationMessage;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 import static java.awt.Color.*;
 import static ui.EscapeSequences.*;
@@ -66,14 +64,22 @@ public class GameplayUI implements ServerMessageHandler {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "leave" -> leave();
-                case "redraw" -> redraw(game.getBoard(),color);
-                case "move" -> makeMove(params);
-                case "resign" -> resign();
-                //case "highlight" -> highlightLegalMoves(params);
-                default -> help();
-            };
+            switch (cmd) {
+                case "leave":
+                    return leave();
+                case "redraw":
+                    return redraw(game.getBoard(),color, null, null);
+                case "move":
+                    return makeMove(params);
+                case "resign":
+                    return resign();
+                case "highlight":
+                    ChessPosition pos = parsePosition(params[0]);
+                    Collection<ChessMove> moves = game.validMoves(pos);
+                    return redraw(game.getBoard(),color, pos, moves);
+                default:
+                    return help();
+            }
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -148,7 +154,7 @@ public class GameplayUI implements ServerMessageHandler {
             try{
                 ChessMove moveToMake = parseUserMove(params);
                 ws.makeMove(authToken, gameID, moveToMake);
-                return "Good move.";
+                return "";
             }
             catch (Exception e) {
                 return "Move unsuccessful.";
@@ -182,7 +188,7 @@ public class GameplayUI implements ServerMessageHandler {
         return new ChessPosition(row, col);
     }
 
-    public String redraw(ChessBoard board, ChessGame.TeamColor who) {
+    public String redraw(ChessBoard board, ChessGame.TeamColor who, ChessPosition targetPos, Collection<ChessMove> validMoves) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         String[] indices;
@@ -192,6 +198,13 @@ public class GameplayUI implements ServerMessageHandler {
         else{
             indices = new String[]{" 1 "," 2 "," 3 "," 4 "," 5 "," 6 "," 7 "," 8 "};
         }
+        Collection<ChessPosition> endPositions = new ArrayList<>();
+        if(!(validMoves==null)){
+            for (ChessMove move : validMoves) {
+                endPositions.add(move.getEndPosition());
+            }
+        }
+
 
         // Determine print orientation
         int startRow = (who == ChessGame.TeamColor.WHITE) ? 8 : 1;
@@ -214,13 +227,29 @@ public class GameplayUI implements ServerMessageHandler {
             int printCol = 0;
             for (int gameCol = startCol; gameCol != endCol + colStep; gameCol += colStep) {
 
-                // Light/dark squares must be based on printed (not game) coords
                 boolean lightSquare = ((printRow + printCol) % 2 == 0);
 
                 String bgColor  = lightSquare ? SET_BG_COLOR_LIGHT_GREY : SET_BG_COLOR_DARK_GREY;
                 String txtColor = lightSquare ? SET_TEXT_COLOR_LIGHT_GREY : SET_TEXT_COLOR_DARK_GREY;
 
-                ChessPiece piece = board.getPiece(new ChessPosition(gameRow, gameCol));
+                ChessPosition pos = new ChessPosition(gameRow, gameCol);
+                if(!(validMoves==null)){
+                    if (targetPos.equals(pos)) {
+                        bgColor = SET_BG_COLOR_YELLOW;
+                        txtColor = SET_TEXT_COLOR_YELLOW;
+                    }
+                    else{
+                        for(ChessPosition potentialMatch : endPositions){
+                            if (potentialMatch.equals(pos)) {
+                                bgColor = SET_BG_COLOR_GREEN;
+                                txtColor = SET_TEXT_COLOR_GREEN;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                ChessPiece piece = board.getPiece(pos);
                 printSingleSquare(out, piece, bgColor, txtColor, who);
                 printCol++;
             }
@@ -285,7 +314,7 @@ public class GameplayUI implements ServerMessageHandler {
     @Override
     public void notifyLoadGame(LoadGameMessage msg) {
         game = msg.getGame();
-        redraw(game.getBoard(),color);
+        redraw(game.getBoard(),color,null,null);
         printPrompt();
     }
 
