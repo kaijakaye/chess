@@ -50,7 +50,7 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        char letterRow = (char) ('a' + (row - 1));
-        return String.format("%c%d", letterRow, col);
+        return String.format("%d%d", col, row);
     }
+
 }

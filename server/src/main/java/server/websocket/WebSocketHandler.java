@@ -126,6 +126,64 @@ public class WebSocketHandler {
             ChessMove move = command.getMove();
             ChessPosition start = move.getStartPosition();
             ChessPosition end = move.getEndPosition();
+            String startStr = "";
+            String endStr = "";
+
+            switch(start.getColumn()){
+                case 1:
+                    startStr+='a';
+                    break;
+                case 2:
+                    startStr+='b';
+                    break;
+                case 3:
+                    startStr+='c';
+                    break;
+                case 4:
+                    startStr+='d';
+                    break;
+                case 5:
+                    startStr+='e';
+                    break;
+                case 6:
+                    startStr+='f';
+                    break;
+                case 7:
+                    startStr+='g';
+                    break;
+                case 8:
+                    startStr+='h';
+                    break;
+            }
+            startStr+=start.getRow();
+
+            switch(end.getColumn()){
+                case 1:
+                    endStr+='a';
+                    break;
+                case 2:
+                    endStr+='b';
+                    break;
+                case 3:
+                    endStr+='c';
+                    break;
+                case 4:
+                    endStr+='d';
+                    break;
+                case 5:
+                    endStr+='e';
+                    break;
+                case 6:
+                    endStr+='f';
+                    break;
+                case 7:
+                    endStr+='g';
+                    break;
+                case 8:
+                    endStr+='h';
+                    break;
+            }
+            endStr+=end.getRow();
 
             //prep message string
             String message;
@@ -143,7 +201,7 @@ public class WebSocketHandler {
             game.makeMove(move);
             gameInfo.setGame(game);
             userService.getDataAccess().updateGame(gameInfo);
-            message = String.format("%s moved from %s to %s", workingUsername, start, end);
+            message = String.format("%s moved from %s to %s", workingUsername, startStr, endStr);
 
             //send updated game and message about move to everyone involved
             var updateGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
@@ -156,14 +214,15 @@ public class WebSocketHandler {
             boolean didSmthFrHappen = false;
             ChessGame.TeamColor enemy = (color==ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
 
-            if(game.isInCheck(enemy)){
-                anotherMsg = String.format("%s is now in check", enemyUsername);
-                didSmthFrHappen = true;
-            }
-            else if(game.isInCheckmate(enemy)){
+            if(game.isInCheckmate(enemy)){
                 anotherMsg = String.format("%s is checkmated. Game over!!", enemyUsername);
                 didSmthFrHappen = true;
             }
+            else if(game.isInCheck(enemy)){
+                anotherMsg = String.format("%s is now in check", enemyUsername);
+                didSmthFrHappen = true;
+            }
+
             else if(game.isInStalemate(enemy)){
                 anotherMsg = "Game in stalemate. Uh ohhhhh";
                 didSmthFrHappen = true;
