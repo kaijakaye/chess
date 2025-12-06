@@ -1,9 +1,6 @@
 package server.websocket;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
-import chess.InvalidMoveException;
+import chess.*;
 import com.google.gson.Gson;
 //import exception.ResponseException;
 import dataaccess.DataAccessException;
@@ -51,6 +48,7 @@ public class WebSocketHandler {
             var gameInfo = userService.getDataAccess().getGame(id);
             var authInfo = userService.getDataAccess().getAuth(command.getAuthToken());
 
+            String observerUsername = "";
             if(authInfo==null){
                 throw new DataAccessException("bad authtoken");
             }
@@ -65,10 +63,11 @@ public class WebSocketHandler {
             }
             else{
                 color = null;
+                observerUsername = authInfo.username();
             }
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command, color, ctx.session);
+                case CONNECT -> connect(command, color, ctx.session,observerUsername);
                 //case MAKE_MOVE -> makeMove(mmComm, color, ctx.session);
                 case MAKE_MOVE -> {
                     if (mmComm == null) {
@@ -78,14 +77,14 @@ public class WebSocketHandler {
                     }
                     makeMove(mmComm, color, ctx.session);
                 }
-                case LEAVE -> leave(command, color, ctx.session);
+                case LEAVE -> leave(command, color, ctx.session, observerUsername);
                 case RESIGN -> resign(command, color, ctx.session);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
         catch(DataAccessException e){
-            var message = "Error";
+            var message = "Error: " + e.getMessage();
             var messageToEveryone = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
             connections.broadcastToSelf(command.getGameID(), ctx.session, messageToEveryone);
         }
@@ -95,7 +94,7 @@ public class WebSocketHandler {
         System.out.println("Websocket closed");
     }
 
-    private void connect(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException{
+    private void connect(UserGameCommand command, ChessGame.TeamColor color, Session session, String observer) throws IOException, DataAccessException{
         var id = command.getGameID();
         connections.add(id, session);
         var gameInfo = userService.getDataAccess().getGame(id);
@@ -105,7 +104,7 @@ public class WebSocketHandler {
         } else if (ChessGame.TeamColor.BLACK.equals(color)) {
             message = String.format("%s successfully added to game %d as %s player", gameInfo.getBlackUsername(), id, color);
         } else {
-            message = String.format("Successfully added to game %d as observer", id);
+            message = String.format("%s successfully added to game %d as observer", observer, id);
         }
 
         var messageToSelf = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameInfo.getGame());
@@ -121,7 +120,7 @@ public class WebSocketHandler {
 
         try{
             if(game.isGameOver()){
-                throw new InvalidMoveException();
+                throw new GameOverException();
             }
 
             ChessMove move = command.getMove();
@@ -131,10 +130,13 @@ public class WebSocketHandler {
             //prep message string
             String message;
             String workingUsername = "";
+            String enemyUsername = "";
             if (ChessGame.TeamColor.WHITE.equals(color) && game.getTeamTurn().equals(color)) {
                 workingUsername = gameInfo.getWhiteUsername();
+                enemyUsername = gameInfo.getBlackUsername();
             } else if (ChessGame.TeamColor.BLACK.equals(color) && game.getTeamTurn().equals(color)) {
                 workingUsername = gameInfo.getBlackUsername();
+                enemyUsername = gameInfo.getWhiteUsername();
             } else {
                 throw new InvalidMoveException();
             }
@@ -155,11 +157,11 @@ public class WebSocketHandler {
             ChessGame.TeamColor enemy = (color==ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
 
             if(game.isInCheck(enemy)){
-                anotherMsg = String.format("%s is now in check", workingUsername);
+                anotherMsg = String.format("%s is now in check", enemyUsername);
                 didSmthFrHappen = true;
             }
             else if(game.isInCheckmate(enemy)){
-                anotherMsg = String.format("%s is checkmated. Game over!!", workingUsername);
+                anotherMsg = String.format("%s is checkmated. Game over!!", enemyUsername);
                 didSmthFrHappen = true;
             }
             else if(game.isInStalemate(enemy)){
@@ -178,15 +180,20 @@ public class WebSocketHandler {
         }
         catch(InvalidMoveException e){
             System.out.println(e.getMessage());
-            var message = "Error";
+            var message = "Error: you can't do that";
             var messageToSelf = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
             connections.broadcastToSelf(command.getGameID(), session, messageToSelf);
-        } catch (Exception ex) {
+        } catch(GameOverException e){
+            System.out.println(e.getMessage());
+            var message = "Error: game's over";
+            var messageToSelf = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            connections.broadcastToSelf(command.getGameID(), session, messageToSelf);
+        }catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
     }
 
-    private void leave(UserGameCommand command, ChessGame.TeamColor color, Session session) throws IOException, DataAccessException {
+    private void leave(UserGameCommand command, ChessGame.TeamColor color, Session session, String observer) throws IOException, DataAccessException {
         var gameInfo = userService.getDataAccess().getGame(command.getGameID());
         String message;
         if (ChessGame.TeamColor.WHITE.equals(color)) {
@@ -198,7 +205,7 @@ public class WebSocketHandler {
             gameInfo.setBlackUsername(null);
             userService.getDataAccess().updateGame(gameInfo);
         } else {
-            message = String.format("Observer left game %d", command.getGameID());
+            message = String.format("%s left game %d", observer, command.getGameID());
         }
         var serverMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,message);
         connections.broadcastToOthers(command.getGameID(), session, serverMessage);
@@ -215,7 +222,7 @@ public class WebSocketHandler {
             var game = gameInfo.getGame();
 
             if(game.isGameOver()){
-                throw new InvalidMoveException();
+                throw new GameOverException();
             }
             else{
                 game.setGameOver(true);
@@ -227,7 +234,7 @@ public class WebSocketHandler {
             } else if (ChessGame.TeamColor.BLACK.equals(color)) {
                 workingUsername = gameInfo.getBlackUsername();
             } else {
-                throw new InvalidMoveException();
+                throw new GameOverException();
             }
 
             game.setGameOver(true);
@@ -238,11 +245,12 @@ public class WebSocketHandler {
             message = String.format("%s resigned from the game. No more playing.", workingUsername);
             var serverMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             connections.broadcastToAll(command.getGameID(), session, serverMessage);
-        } catch (InvalidMoveException e) {
-            var message = "Error";
+        } catch (GameOverException e) {
+            var message = "Error: game's over!";
             var messageToSelf = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
             connections.broadcastToSelf(command.getGameID(), session, messageToSelf);
         }
+
         //This applies to both players and observers.
     }
 }
