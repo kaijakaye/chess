@@ -152,15 +152,17 @@ public class WebSocketHandler {
             //send notif about check or stalemate or whateva
             String anotherMsg = "";
             boolean didSmthFrHappen = false;
-            if(game.isInCheck(color)){
+            ChessGame.TeamColor enemy = (color==ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+            if(game.isInCheck(enemy)){
                 anotherMsg = String.format("%s is now in check", workingUsername);
                 didSmthFrHappen = true;
             }
-            else if(game.isInCheckmate(color)){
+            else if(game.isInCheckmate(enemy)){
                 anotherMsg = String.format("%s is checkmated. Game over!!", workingUsername);
                 didSmthFrHappen = true;
             }
-            else if(game.isInStalemate(color)){
+            else if(game.isInStalemate(enemy)){
                 anotherMsg = "Game in stalemate. Uh ohhhhh";
                 didSmthFrHappen = true;
             }
