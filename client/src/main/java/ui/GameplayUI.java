@@ -153,6 +153,21 @@ public class GameplayUI implements ServerMessageHandler {
         if (params.length == 2) {
             try{
                 ChessMove moveToMake = parseUserMove(params);
+                ChessPosition endPos = moveToMake.getEndPosition();
+
+                boolean whiteNeedsPromo = ChessGame.TeamColor.WHITE.equals(color) && endPos.getRow()==8;
+                boolean blackNeedsPromo = ChessGame.TeamColor.BLACK.equals(color) && endPos.getRow()==1;
+                ChessPiece.PieceType promo = null;
+
+                if(whiteNeedsPromo || blackNeedsPromo){
+                    System.out.print("Which piece do you want to promote your pawn to? ('N','Q','R','B')");
+                    Scanner scanner = new Scanner(System.in);
+                    printPrompt();
+                    String line = scanner.nextLine();
+                    promo = evalPromo(line);
+                }
+
+                moveToMake.setPromotionPiece(promo);
                 ws.makeMove(authToken, gameID, moveToMake);
                 return "";
             }
@@ -161,6 +176,26 @@ public class GameplayUI implements ServerMessageHandler {
             }
         }
         throw new Exception("Invalid input");
+    }
+
+    public ChessPiece.PieceType evalPromo(String input) {
+        try {
+            String[] tokens = input.toLowerCase().split(" ");
+            String cmd = (tokens.length > 0) ? tokens[0] : "no";
+            if(cmd.equals("no")){
+                throw new Exception();
+            }
+            return switch (cmd) {
+                case "n" -> ChessPiece.PieceType.KNIGHT;
+                case "b" -> ChessPiece.PieceType.BISHOP;
+                case "r" -> ChessPiece.PieceType.ROOK;
+                case "q" -> ChessPiece.PieceType.QUEEN;
+                default -> ChessPiece.PieceType.PAWN;
+            };
+        } catch (Exception ex) {
+            System.out.print("not a valid piece");
+        }
+        return null;
     }
 
     public static ChessMove parseUserMove(String[] parts) {
