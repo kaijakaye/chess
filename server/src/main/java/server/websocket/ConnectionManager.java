@@ -14,13 +14,6 @@ public class ConnectionManager {
     public final ConcurrentHashMap<Integer, Collection<Session>> connections = new ConcurrentHashMap<>();
 
     public void add(Integer gameID, Session session) {
-        /*Collection<Session> sessions = connections.get(gameID);
-        if (sessions == null) {
-            sessions = new CopyOnWriteArrayList<>();
-            connections.put(gameID, sessions);
-        }
-        sessions.add(session);
-*/
         connections.putIfAbsent(gameID, new CopyOnWriteArrayList<>());
         connections.get(gameID).add(session);
     }
@@ -46,7 +39,6 @@ public class ConnectionManager {
                 s.close();
                 sessions.remove(s);
                 connections.put(gameID,sessions);
-                //remove(gameID, s);
             }
         }
     }

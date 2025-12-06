@@ -55,10 +55,6 @@ public class GameplayUI implements ServerMessageHandler {
         }
     }
 
-    private void printPrompt() {
-        System.out.print("\n" + ">>> ");
-    }
-
     public String eval(String input) {
         try {
             String[] tokens = input.toLowerCase().split(" ");
@@ -83,6 +79,10 @@ public class GameplayUI implements ServerMessageHandler {
         } catch (Exception ex) {
             return ex.getMessage();
         }
+    }
+
+    private void printPrompt() {
+        System.out.print("\n" + ">>> ");
     }
 
     public String help() {
