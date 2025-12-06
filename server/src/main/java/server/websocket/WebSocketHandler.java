@@ -129,61 +129,8 @@ public class WebSocketHandler {
             String startStr = "";
             String endStr = "";
 
-            switch(start.getColumn()){
-                case 1:
-                    startStr+='a';
-                    break;
-                case 2:
-                    startStr+='b';
-                    break;
-                case 3:
-                    startStr+='c';
-                    break;
-                case 4:
-                    startStr+='d';
-                    break;
-                case 5:
-                    startStr+='e';
-                    break;
-                case 6:
-                    startStr+='f';
-                    break;
-                case 7:
-                    startStr+='g';
-                    break;
-                case 8:
-                    startStr+='h';
-                    break;
-            }
-            startStr+=start.getRow();
-
-            switch(end.getColumn()){
-                case 1:
-                    endStr+='a';
-                    break;
-                case 2:
-                    endStr+='b';
-                    break;
-                case 3:
-                    endStr+='c';
-                    break;
-                case 4:
-                    endStr+='d';
-                    break;
-                case 5:
-                    endStr+='e';
-                    break;
-                case 6:
-                    endStr+='f';
-                    break;
-                case 7:
-                    endStr+='g';
-                    break;
-                case 8:
-                    endStr+='h';
-                    break;
-            }
-            endStr+=end.getRow();
+            startStr = switchArgs(start, startStr);
+            endStr = switchArgs(end, endStr);
 
             //prep message string
             String message;
@@ -250,6 +197,38 @@ public class WebSocketHandler {
         }catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
+    }
+
+    private String switchArgs(ChessPosition start, String startStr) {
+        switch(start.getColumn()){
+            case 1:
+                startStr+='a';
+                break;
+            case 2:
+                startStr+='b';
+                break;
+            case 3:
+                startStr+='c';
+                break;
+            case 4:
+                startStr+='d';
+                break;
+            case 5:
+                startStr+='e';
+                break;
+            case 6:
+                startStr+='f';
+                break;
+            case 7:
+                startStr+='g';
+                break;
+            case 8:
+                startStr+='h';
+                break;
+        }
+        startStr+=start.getRow();
+        return startStr;
+
     }
 
     private void leave(UserGameCommand command, ChessGame.TeamColor color, Session session, String observer) throws IOException, DataAccessException {
